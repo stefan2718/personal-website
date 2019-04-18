@@ -6,7 +6,7 @@
 
 ## Demo 💯
 
-- [Demo Link](https://starter-gatsbyjs-material-kit.appseed.us/)
+- [Demo Link](https://starter-gatsbyjs-strata.appseed.us/)
 
 ## Features 🚀
 
