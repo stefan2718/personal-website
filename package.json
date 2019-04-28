@@ -1,10 +1,9 @@
 {
-  "name": "gatsby-starter-default",
-  "description": "Gatsby default starter",
-  "version": "1.0.0",
-  "author": "Hunter Chang",
+  "name": "stefans-website",
+  "description": "Where I put stuff.",
+  "version": "1.0.1",
+  "author": "Stefan Battiston",
   "dependencies": {
-    "ftp-deploy": "^2.3.3",
     "gatsby": "^2.2.9",
     "gatsby-plugin-manifest": "^2.0.24",
     "gatsby-plugin-offline": "^2.0.25",
@@ -32,6 +31,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gatsbyjs/gatsby-starter-default"
+    "url": "https://github.com/stefan2718/personal-website"
   }
 }
