@@ -1,8 +1,8 @@
 module.exports = {
   siteMetadata: {
-    title: "Gatsby Starter - Strata by HTML5 UP",
-    author: "Hunter Chang",
-    description: "A Gatsby.js Starter based on Strata by HTML5 UP"
+    title: "Stefan Battiston - full stack developer",
+    author: "Stefan Battiston",
+    description: "Blog, web and coding experiments."
   },
   plugins: [
     'gatsby-plugin-react-helmet',
@@ -18,6 +18,14 @@ module.exports = {
         icon: 'src/assets/images/website-icon.png', // This path is relative to the root of the site.
       },
     },
+    {
+      resolve: 'gatsby-source-filesystem',
+      options: {
+        path: `${__dirname}/src/blog`,
+        name: "markdown-pages",
+      },
+    },
+    'gatsby-transformer-remark',
     'gatsby-plugin-sass',
     'gatsby-plugin-offline'
   ],

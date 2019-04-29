@@ -6,13 +6,15 @@ class Footer extends React.Component {
       <div id="footer">
         <div className="inner">
           <ul className="icons">
-            <li><a href="https://www.twitter.com/webappseed/" className="icon fa-twitter"><span className="label">Twitter</span></a></li>
-            <li><a href="https://www.facebook.com/webappseed/" className="icon fa-facebook"><span className="label">Facebook</span></a></li>
-            <li><a href="https://github.com/rosoftdeveloper/starter-gatsbyjs-strata" className="icon fa-github"><span className="label">Github</span></a></li>
-            <li><a href="https://blog.appseed.us" className="icon fa-rss"><span className="label">Github</span></a></li>
+            <li><a href="https://github.com/stefan2718" className="icon fa-github"><span className="label">Github</span></a></li>
+            <li><a href="https://www.linkedin.com/in/stefan-battiston/" className="icon fa-linkedin"><span className="label">LinkedIn</span></a></li>
           </ul>
           <ul className="copyright">
-            <li>&copy; Gatsby Starter Strata</li><li>Design: HTML5 UP</li>
+            <li>Built with <a href="https://www.gatsbyjs.org/">Gatsby</a> and <a href="https://reactjs.org">React</a></li>
+            <li>
+              How fast is this site?&nbsp;
+              <a rel="noopener noreferrer" target="_blank" href="https://developers.google.com/speed/pagespeed/insights/?url=https://stefanbattiston.com">Check Speed</a>
+            </li>
           </ul>
         </div>
       </div>
