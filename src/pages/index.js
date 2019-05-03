@@ -1,7 +1,7 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 
-import HomePageLayout from '../components/layout'
+import HomePageLayout from '../components/HomePageLayout'
 
 class HomeIndex extends React.Component {
 

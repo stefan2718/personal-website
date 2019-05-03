@@ -1,7 +1,7 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 
-import Layout from '../components/layout'
+import HomePageLayout from '../components/HomePageLayout'
 
 class Lab extends React.Component {
 
@@ -17,13 +17,13 @@ class Lab extends React.Component {
     const siteDescription = "Site description"
 
     return (
-      <Layout>
+      <HomePageLayout>
         <Helmet>
           <title>{siteTitle}</title>
           <meta name="description" content={siteDescription} />
         </Helmet>
         Lab page
-      </Layout>
+      </HomePageLayout>
     )
   }
 }
