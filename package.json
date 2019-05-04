@@ -9,9 +9,11 @@
     "gatsby-plugin-offline": "^2.0.25",
     "gatsby-plugin-react-helmet": "^3.0.10",
     "gatsby-plugin-sass": "^2.0.11",
+    "gatsby-remark-prismjs": "^3.2.9",
     "gatsby-source-filesystem": "^2.0.32",
     "gatsby-transformer-remark": "^2.3.12",
     "node-sass": "^4.11.0",
+    "prismjs": "^1.16.0",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
     "react-helmet": "^5.2.0"
