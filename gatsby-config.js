@@ -6,6 +6,7 @@ module.exports = {
   },
   plugins: [
     'gatsby-plugin-react-helmet',
+    'gatsby-plugin-catch-links',
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
@@ -28,7 +29,9 @@ module.exports = {
     {
       resolve: 'gatsby-transformer-remark',
       options: {
+        "excerpt_separator": '<!-- end -->',
         plugins: [
+          'gatsby-remark-autolink-headers',
           'gatsby-remark-prismjs'
         ]
       },

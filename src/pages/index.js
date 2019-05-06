@@ -1,7 +1,10 @@
 import React from 'react'
 import Helmet from 'react-helmet'
+import { Link } from 'gatsby'
+import { graphql } from "gatsby"
 
 import HomePageLayout from '../components/HomePageLayout'
+import BlogSummary from '../components/BlogSummary'
 
 class HomeIndex extends React.Component {
 
@@ -13,13 +16,12 @@ class HomeIndex extends React.Component {
   }
 
   render() {
-    const siteTitle = "Stefan Battiston"
+    // TODO:
     const siteDescription = "Site description"
-
     return (
       <HomePageLayout>
         <Helmet>
-          <title>{siteTitle}</title>
+          <title>Stefan Battiston</title>
           <meta name="description" content={siteDescription} />
         </Helmet>
 
@@ -37,10 +39,18 @@ class HomeIndex extends React.Component {
 
           <section id="two">
             <h2>Recent blog posts</h2>
-
-
+            {this.props.data.allMarkdownRemark.edges.map(edge => 
+              <BlogSummary
+                key={edge.node.frontmatter.path}
+                path={edge.node.frontmatter.path}
+                date={edge.node.frontmatter.date}
+                dateISO={edge.node.frontmatter.dateISO}
+                title={edge.node.frontmatter.title}
+                excerpt={edge.node.excerpt}
+                />
+            )}
             <ul className="actions">
-              <li><a href="/blog" className="button">Go to blog</a></li>
+              <li><Link to="/blog" className="button">See all posts</Link></li>
             </ul>
           </section>
 
@@ -86,5 +96,25 @@ class HomeIndex extends React.Component {
     )
   }
 }
+
+export const pageQuery = graphql`
+{
+  allMarkdownRemark(
+    sort: { order: DESC, fields: [frontmatter___date] }
+    limit: 2
+  ) {
+    edges {
+      node {
+        excerpt(pruneLength: 240)
+        frontmatter {
+          dateISO: date
+          date(formatString: "MMMM DD, YYYY")
+          path
+          title
+        }
+      }
+    }
+  }
+}`
 
 export default HomeIndex
