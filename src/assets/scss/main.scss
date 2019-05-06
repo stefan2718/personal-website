@@ -70,6 +70,10 @@
 		color: _palette(accent1, bg);
 		text-decoration: none;
 
+		&.no-underline, &.anchor {
+			border-bottom: 0;
+		}
+
 		&:hover {
 			border-bottom-color: transparent;
 			color: _palette(accent1, bg) !important;
@@ -882,6 +886,12 @@
 			cursor: default;
 		}
 	}
+	nav {
+		.button {
+			margin: 10px 0;
+		}
+	}
+
 
 /* Work Item */
 
