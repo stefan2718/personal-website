@@ -17,12 +17,17 @@ class Lab extends React.Component {
     const siteDescription = "Site description"
 
     return (
-      <HomePageLayout>
+      <HomePageLayout location={this.props.location}>
         <Helmet>
           <title>{siteTitle}</title>
           <meta name="description" content={siteDescription} />
         </Helmet>
-        Lab page
+        <div id="main">
+          <h1>The Lab</h1>
+          <main>
+            Nothing here yet.
+          </main>
+        </div>
       </HomePageLayout>
     )
   }

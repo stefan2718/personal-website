@@ -4,11 +4,15 @@ import '../assets/scss/main.scss'
 import Header from './Header'
 
 class HomePageLayout extends React.Component {
+  getClassNames = (pathname) => {
+    return pathname.startsWith('/lab') || pathname.startsWith('/blog') ? 'mini-header' : '';
+  }
+
   render() {
-    const { children } = this.props
+    const { children, location } = this.props
 
     return (
-      <div>
+      <div className={this.getClassNames(location.pathname)}>
         <Header />
         {children}
       </div>

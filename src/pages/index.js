@@ -19,14 +19,13 @@ class HomeIndex extends React.Component {
     // TODO:
     const siteDescription = "Site description"
     return (
-      <HomePageLayout>
+      <HomePageLayout location={this.props.location}>
         <Helmet>
           <title>Stefan Battiston</title>
           <meta name="description" content={siteDescription} />
         </Helmet>
 
         <div id="main">
-
           <section id="one">
             <header className="major">
               <h2>I'm a full stack developer, improviser, yogi and cyclist.</h2>
@@ -55,43 +54,15 @@ class HomeIndex extends React.Component {
           </section>
 
           <section id="three">
-            <h2>Get In Touch</h2>
-            <p>Accumsan pellentesque commodo blandit enim arcu non at amet id arcu magna. Accumsan orci faucibus id eu lorem semper nunc nisi lorem vulputate lorem neque lorem ipsum dolor.</p>
-            <div className="row">
-              <div className="8u 12u$(small)">
-                <form method="post" action="#">
-                  <div className="row uniform 50%">
-                    <div className="6u 12u$(xsmall)"><input type="text" name="name" id="name" placeholder="Name" /></div>
-                    <div className="6u 12u$(xsmall)"><input type="email" name="email" id="email" placeholder="Email" /></div>
-                    <div className="12u"><textarea name="message" id="message" placeholder="Message" rows="4"></textarea></div>
-                  </div>
-                </form>
-                <ul className="actions">
-                  <li><input type="submit" value="Send Message" /></li>
-                </ul>
-              </div>
-              <div className="4u 12u$(small)">
-                <ul className="labeled-icons">
-                  <li>
-                    <h3 className="icon fa-home"><span className="label">Address</span></h3>
-                    1234 Somewhere Rd.<br />
-                    Nashville, TN 00000<br />
-                    United States
-                                    </li>
-                  <li>
-                    <h3 className="icon fa-mobile"><span className="label">Phone</span></h3>
-                    000-000-0000
-                                    </li>
-                  <li>
-                    <h3 className="icon fa-envelope-o"><span className="label">Email</span></h3>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            <h2>The Lab</h2>
+            <p>These are some code experiments that I've been working on.</p>
+            {/* A tile layout with image per project. */}
+            <div>Example</div>
+            <ul className="actions">
+              <li><Link to="/lab" className="button">Tour the Lab</Link></li>
+            </ul>
           </section>
-
         </div>
-
       </HomePageLayout>
     )
   }

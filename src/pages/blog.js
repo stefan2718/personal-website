@@ -19,7 +19,7 @@ class Blog extends React.Component {
     const siteDescription = "Site description"
 
     return (
-      <HomePageLayout>
+      <HomePageLayout location={this.props.location}>
         <Helmet>
           <title>Stefan's blog posts</title>
           <meta name="description" content={siteDescription} />

@@ -48,6 +48,8 @@
 	body {
 		background: _palette(bg);
 
+		overflow-y: scroll;
+
 		&.is-loading {
 			*, *:before, *:after {
 				@include vendor('animation', 'none !important');
@@ -863,7 +865,7 @@
 		}
 
 		&.special {
-			background-color: _palette(accent1, bg);
+			background-color: _palette(accent1, bg-light);
 			border-color: _palette(accent1, bg);
 			color: _palette(accent1, fg-bold) !important;
 
@@ -887,6 +889,7 @@
 		}
 	}
 	nav {
+		margin-top: 80px;
 		.button {
 			margin: 10px 0;
 		}
@@ -1012,6 +1015,8 @@
 		max-width: 50em + $size-header-pad;
 		padding: ($size-header-pad * 2) $size-header-pad $size-header-pad $size-header-pad;
 		width: calc(100% - #{$size-header-width});
+
+		min-height: 100vh;
 
 		> section {
 			border-top: solid 2px _palette(border);
