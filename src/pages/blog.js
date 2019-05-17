@@ -16,7 +16,7 @@ class Blog extends React.Component {
 
   render() {
     const { data } = this.props;
-    const siteDescription = "Site description"
+    const siteDescription = "Listing of all the blog posts written by Stefan Battiston"
 
     return (
       <HomePageLayout location={this.props.location}>

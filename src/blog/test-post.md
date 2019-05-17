@@ -2,6 +2,7 @@
 path: "/blog/test-post"
 date: "2019-05-01T00:00:00Z"
 title: "Test Post"
+description: "How can mirrors be real if our eyes aren't even real"
 tags:
   - test
   - syntax highlighting

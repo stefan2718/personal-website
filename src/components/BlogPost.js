@@ -1,4 +1,5 @@
 import React from "react"
+import Helmet from 'react-helmet'
 import { graphql } from "gatsby"
 import HomePageLayout from "./HomePageLayout";
 
@@ -9,6 +10,10 @@ export default function Template({
   const { frontmatter, html } = markdownRemark
   return (
     <HomePageLayout location={{ pathname: "/blog" }}>
+      <Helmet>
+        <title>{frontmatter.title}</title>
+        <meta name="description" content={frontmatter.description} />
+      </Helmet>
       <div id="main">
         <div className="inner-main">
           <h1>{frontmatter.title}</h1>
@@ -32,6 +37,7 @@ export const pageQuery = graphql`
         date(formatString: "MMMM DD, YYYY")
         path
         title
+        description
       }
     }
   }
