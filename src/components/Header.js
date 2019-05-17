@@ -12,15 +12,13 @@ const routes = [
 ];
 
 class Header extends React.Component {
-  // TODO: Shrink this on blog/lab pages
 
   getRoutes = (location) => {
-    let locationBase = /\/\w*/.exec(location.pathname)[0];
     return routes
-      .filter(route => locationBase !== route.path)
+      .filter(route => location.pathname !== route.path)
       .map(route => (
         <div key={route.path}>
-          <Link to={route.path} className="button special">{route.label}</Link>
+          <Link to={route.path} className="button special" activeClassName="activeRoute">{route.label}</Link>
         </div>
       ));
   }

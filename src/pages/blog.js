@@ -25,19 +25,21 @@ class Blog extends React.Component {
           <meta name="description" content={siteDescription} />
         </Helmet>
         <div id="main">
-          <h1>All Posts</h1>
-          <main>
-            {data.allMarkdownRemark.edges.map(edge => 
-              <BlogSummary 
-                key={edge.node.frontmatter.path}
-                path={edge.node.frontmatter.path}
-                date={edge.node.frontmatter.date}
-                dateISO={edge.node.frontmatter.dateISO}
-                title={edge.node.frontmatter.title}
-                excerpt={edge.node.excerpt}
-                />
-            )}
-          </main>
+          <div className="inner-main">
+            <h1>All Posts</h1>
+            <main>
+              {data.allMarkdownRemark.edges.map(edge => 
+                <BlogSummary 
+                  key={edge.node.frontmatter.path}
+                  path={edge.node.frontmatter.path}
+                  date={edge.node.frontmatter.date}
+                  dateISO={edge.node.frontmatter.dateISO}
+                  title={edge.node.frontmatter.title}
+                  excerpt={edge.node.excerpt}
+                  />
+              )}
+            </main>
+          </div>
         </div>
       </HomePageLayout>
     )
