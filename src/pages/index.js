@@ -1,7 +1,6 @@
 import React from 'react'
 import Helmet from 'react-helmet'
-import { Link } from 'gatsby'
-import { graphql } from "gatsby"
+import { Link, graphql } from 'gatsby'
 
 import HomePageLayout from '../components/HomePageLayout'
 import BlogSummary from '../components/BlogSummary'
@@ -16,8 +15,7 @@ class HomeIndex extends React.Component {
   }
 
   render() {
-    // TODO:
-    const siteDescription = "Site description"
+    const siteDescription = "Stefan - full stack developer, improviser, yogi, cyclist."
     return (
       <HomePageLayout location={this.props.location}>
         <Helmet>
@@ -28,7 +26,7 @@ class HomeIndex extends React.Component {
         <div id="main">
           <section id="one">
             <header className="major">
-              <h2>I'm a full stack developer, improviser, yogi and cyclist.</h2>
+              <h2>I'm a full stack developer, improviser, yogi, and cyclist.</h2>
             </header>
             <p>
               <strong>I'm going to put things that interest me on this site.</strong>&nbsp;
