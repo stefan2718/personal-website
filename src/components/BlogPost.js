@@ -9,8 +9,8 @@ export default function Template({
   const { frontmatter, html } = markdownRemark
   return (
     <HomePageLayout location={{ pathname: "/blog" }}>
-      <div id="main" className="blog-post-container">
-        <div className="blog-post">
+      <div id="main">
+        <div className="inner-main">
           <h1>{frontmatter.title}</h1>
           <time dateTime={frontmatter.dateISO}>{frontmatter.date}</time>
           <article

@@ -57,7 +57,6 @@ class HomeIndex extends React.Component {
             <h2>The Lab</h2>
             <p>These are some code experiments that I've been working on.</p>
             {/* A tile layout with image per project. */}
-            <div>Example</div>
             <ul className="actions">
               <li><Link to="/lab" className="button">Tour the Lab</Link></li>
             </ul>
