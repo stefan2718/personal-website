@@ -21,6 +21,16 @@ module.exports = {
       },
     },
     {
+      resolve: 'gatsby-plugin-s3',
+      options: {
+        bucketName: 'stefanbattiston.com',
+        protocol: 'https',
+        hostname: 'stefanbattiston.com',
+        region: 'ca-central-1',
+        acl: null,
+      },
+    },
+    {
       resolve: 'gatsby-source-filesystem',
       options: {
         path: `${__dirname}/src/blog`,
