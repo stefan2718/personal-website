@@ -31,6 +31,12 @@ module.exports = {
       },
     },
     {
+      resolve: 'gatsby-plugin-canonical-urls',
+      options: {
+        siteUrl: 'https://stefanbattiston.com',
+      },
+    },
+    {
       resolve: 'gatsby-source-filesystem',
       options: {
         path: `${__dirname}/src/blog`,
@@ -48,6 +54,7 @@ module.exports = {
             resolve: 'gatsby-remark-images',
             options: {
               maxWidth: 700,
+              withWebp: true,
             },
           },
         ]
