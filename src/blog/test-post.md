@@ -29,7 +29,7 @@ But let's throw in a <b>tag</b>.
 
 > Massa enim nec dui nunc. Duis convallis convallis tellus id interdum velit laoreet id donec. Cursus eget nunc scelerisque viverra mauris. Vitae proin sagittis nisl rhoncus mattis rhoncus. Ultrices neque ornare aenean euismod elementum nisi quis. In egestas erat imperdiet sed euismod nisi porta lorem. Pellentesque elit ullamcorper dignissim cras. Purus faucibus ornare suspendisse sed. Et tortor at risus viverra adipiscing at. Turpis cursus in hac habitasse platea. Scelerisque mauris pellentesque pulvinar pellentesque habitant morbi tristique senectus. Eros donec ac odio tempor orci dapibus ultrices in. Sodales ut etiam sit amet nisl purus. Viverra nibh cras pulvinar mattis nunc sed blandit libero volutpat. Vitae tempus quam pellentesque nec nam aliquam. Ac tincidunt vitae semper quis lectus. Sed risus pretium quam vulputate dignissim suspendisse in. Pellentesque sit amet porttitor eget dolor morbi non arcu. Vulputate eu scelerisque felis imperdiet.
 
-![alt text](https://www.fillmurray.com/640/322)
+![alt text](./japanese_garden_vancouver.jpg)
 
 ## Next Header
 

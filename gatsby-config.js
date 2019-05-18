@@ -7,6 +7,7 @@ module.exports = {
   plugins: [
     'gatsby-plugin-react-helmet',
     'gatsby-plugin-catch-links',
+    'gatsby-plugin-sharp',
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
@@ -32,7 +33,13 @@ module.exports = {
         "excerpt_separator": '<!-- end -->',
         plugins: [
           'gatsby-remark-autolink-headers',
-          'gatsby-remark-prismjs'
+          'gatsby-remark-prismjs',
+          {
+            resolve: 'gatsby-remark-images',
+            options: {
+              maxWidth: 700,
+            },
+          },
         ]
       },
     },
