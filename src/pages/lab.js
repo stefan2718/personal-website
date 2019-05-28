@@ -1,21 +1,10 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 import HomePageLayout from '../components/HomePageLayout'
+import Clusterer from '../components/Clusterer';
 
-const js = import("@stefan2718/webassembly-marker-clusterer");
 
 class Lab extends React.Component {
-  clusterer = null;
-
-  componentDidMount() {
-    js.then(lib => {
-      this.clusterer = lib;
-    });
-  }
-
-  greet = (str) => {
-    this.clusterer.greet(str);
-  }
 
   constructor() {
     super();
@@ -25,6 +14,7 @@ class Lab extends React.Component {
   }
 
   render() {
+    // TODO
     const siteTitle = "Stefan Battiston"
     const siteDescription = "Site description"
 
@@ -37,8 +27,7 @@ class Lab extends React.Component {
         <div id="main">
           <h1>The Lab</h1>
           <main>
-            <h3>WebAssembly Experiment</h3>
-            <button className="button" onClick={() => this.greet('and the Wasm module calls Javascript\'s alert() function')}>This button calls a function in a Wasm module.</button>
+            <Clusterer></Clusterer>
           </main>
         </div>
       </HomePageLayout>

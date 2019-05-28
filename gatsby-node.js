@@ -40,3 +40,18 @@ exports.createPages = ({ actions, graphql }) => {
     })
   })
 }
+
+exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
+  if (stage === "build-html") {
+    actions.setWebpackConfig({
+      module: {
+        rules: [
+          {
+            test: /@stefan2718\/webassembly-marker-clusterer/,
+            use: loaders.null(),
+          },
+        ],
+      },
+    })
+  }
+}
