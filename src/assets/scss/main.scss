@@ -978,6 +978,9 @@
 	#footer {
 		.icons {
 			margin: (_size(element-margin) * 0.5) 0 0 0;
+			li {
+				font-size: 2rem;
+			}
 
 			a {
 				color: _palette(accent2, fg-light);
