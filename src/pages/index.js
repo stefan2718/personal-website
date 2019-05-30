@@ -4,6 +4,7 @@ import { Link, graphql } from 'gatsby'
 
 import HomePageLayout from '../components/HomePageLayout'
 import BlogSummary from '../components/BlogSummary'
+import { labTiles, getTiles } from "../util/lab-routes";
 
 class HomeIndex extends React.Component {
 
@@ -54,8 +55,10 @@ class HomeIndex extends React.Component {
           <section id="three">
             <h2>The Lab</h2>
             <p>These are some code experiments that I've been working on.</p>
-            {/* A tile layout with image per project. */}
-            <ul className="actions">
+            <div>
+              {getTiles(labTiles)}
+            </div>
+            <ul className="actions" style={{marginTop: "20px"}}>
               <li><Link to="/lab" className="button">Tour the Lab</Link></li>
             </ul>
           </section>
