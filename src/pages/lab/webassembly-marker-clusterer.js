@@ -5,24 +5,40 @@ import HomePageLayout from '../../components/HomePageLayout';
 class Clusterer extends React.Component {
   clusterer = null;
 
+  constructor() {
+    super();
+
+    this.state = {
+      loadWasmFailure: false,
+      numberOfPoints: 1,
+      points: [{x: 1, y: 2, price: 3}],
+      clusters: [],
+    };
+  }
+
   componentDidMount() {
     import("@stefan2718/webassembly-marker-clusterer")
       .then(lib => this.clusterer = lib)
       .catch(err => {
         console.err(err);
-        // TODO SetState error.
+        this.setState({ loadWasmFailure: true });
       });
   }
 
-  greet = (str) => {
-    this.clusterer.greet(str);
+  clusterPoints = () => {
+    let a = this.clusterer.parse_and_cluster_points(this.state.points);
+    this.setState({ clusters: a });
   }
 
-  constructor() {
-    super();
-
-    this.state = {
-    };
+  changeNumberOfPoints = (event) => {
+    let size = 0;
+    if (event.target.value > 0) {
+      size = event.target.value; 
+    }
+    this.setState({ 
+      numberOfPoints: size,
+      points: Array(Number(size)).fill({ x: 1, y: 2, price: 3 }),
+    });
   }
 
   render() {
@@ -32,7 +48,7 @@ class Clusterer extends React.Component {
           <title>WebAssembly Markerer Clusterer</title>
           <meta name="description" content="A side-by-side comparison of the popular MarkerClusterPlus for Google Maps and a WebAssembly port of the same logic." />
         </Helmet>
-        <div id="main">
+        <div id="main" className="wasm-lab">
           <div className="inner-main">
             <h1>WebAssembly Experiment</h1>
             <p>I'm working towards a side-by-side comparison of the popular&nbsp;
@@ -44,7 +60,23 @@ class Clusterer extends React.Component {
               allow the page to keep rendering without blocking.
             </p>
             <main>
-              <button className="button" onClick={() => this.greet('and the Wasm module calls Javascript\'s alert() function')}>This button calls a function in a Wasm module.</button>
+              <label htmlFor="numPoints">Number of points
+                <input id="numPoints" type="number" value={this.state.numberOfPoints} onChange={this.changeNumberOfPoints}/>
+              </label>
+              <div>
+                <button className="button" onClick={this.clusterPoints}>Transform points into clusters of 1 point - in WASM!</button>
+              </div>
+              { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
+              <div className="point-comparison">
+                <span>
+                  <h4>Original points</h4>
+                  <pre>{ JSON.stringify(this.state.points, null, 2) }</pre>
+                </span>
+                <span>
+                  <h4>"Clustered" points</h4>
+                  <pre>{ JSON.stringify(this.state.clusters, null, 2) }</pre>
+                </span>
+              </div>
             </main>
           </div>
         </div>
