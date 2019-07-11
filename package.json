@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "author": "Stefan Battiston",
   "dependencies": {
-    "@stefan2718/webassembly-marker-clusterer": "0.0.3",
+    "@stefan2718/webassembly-marker-clusterer": "0.0.4",
     "gatsby": "^2.7.9",
     "gatsby-plugin-canonical-urls": "^2.0.13",
     "gatsby-plugin-catch-links": "^2.0.15",

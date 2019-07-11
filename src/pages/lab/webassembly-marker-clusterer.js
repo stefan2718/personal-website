@@ -11,7 +11,7 @@ class Clusterer extends React.Component {
     this.state = {
       loadWasmFailure: false,
       numberOfPoints: 1,
-      points: [{x: 1, y: 2, price: 3}],
+      points: [{lat: 1, lng: 2, price: 3}],
       clusters: [],
     };
   }
@@ -26,7 +26,9 @@ class Clusterer extends React.Component {
   }
 
   clusterPoints = () => {
+    console.time("into wasm");
     let a = this.clusterer.parse_and_cluster_points(this.state.points);
+    console.timeEnd("out of wasm");
     this.setState({ clusters: a });
   }
 
@@ -35,9 +37,9 @@ class Clusterer extends React.Component {
     if (event.target.value > 0) {
       size = event.target.value; 
     }
-    this.setState({ 
+    this.setState({
       numberOfPoints: size,
-      points: Array(Number(size)).fill({ x: 1, y: 2, price: 3 }),
+      points: Array(Number(size)).fill({ lat: 1, lng: 2, price: 3 }),
     });
   }
 
@@ -64,7 +66,8 @@ class Clusterer extends React.Component {
                 <input id="numPoints" type="number" value={this.state.numberOfPoints} onChange={this.changeNumberOfPoints}/>
               </label>
               <div>
-                <button className="button" onClick={this.clusterPoints}>Transform points into clusters of 1 point - in WASM!</button>
+                <button className="button" onClick={this.clusterPoints}>Cluster all points - in WASM!</button>
+                <span>See console for performance timings</span>
               </div>
               { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
               <div className="point-comparison">

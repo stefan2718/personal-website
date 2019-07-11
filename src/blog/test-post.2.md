@@ -3,6 +3,7 @@ path: "/blog/test-post3"
 date: "2019-05-03T00:00:00Z"
 title: "Test Post with really long title that keeps going on because I don't know why I would do this."
 description: "How can mirrors be real if our eyes aren't even real"
+draft: true
 tags:
   - test
   - syntax highlighting
