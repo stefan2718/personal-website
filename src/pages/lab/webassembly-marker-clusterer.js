@@ -1,15 +1,18 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 import HomePageLayout from '../../components/HomePageLayout';
+import pointData from '../../assets/json/points.json';
 
 class Clusterer extends React.Component {
   clusterer = null;
+  torontoPoints = null;
 
   constructor() {
     super();
 
     this.state = {
       loadWasmFailure: false,
+      loadDataFailure: false,
       numberOfPoints: 1,
       points: [{lat: 1, lng: 2, price: 3}],
       clusters: [],
@@ -20,19 +23,25 @@ class Clusterer extends React.Component {
     import("@stefan2718/webassembly-marker-clusterer")
       .then(lib => this.clusterer = lib)
       .catch(err => {
-        console.err(err);
+        console.error(err);
         this.setState({ loadWasmFailure: true });
       });
+    this.torontoPoints = pointData.map(pointStr => {
+      let pointObj = pointStr.split(";");
+      return { lat: Number(pointObj[0]), lng: Number(pointObj[1]), price: Number(pointObj[2]) };
+    });
+    // this.setState({})
   }
 
   clusterPoints = () => {
-    console.time("into wasm");
-    let a = this.clusterer.parse_and_cluster_points(this.state.points);
-    console.timeEnd("out of wasm");
+    console.time("into-wasm");
+    let a = this.clusterer.parse_and_cluster_points(this.torontoPoints);
+    console.timeEnd("out-of-wasm");
     this.setState({ clusters: a });
   }
 
   changeNumberOfPoints = (event) => {
+    // console.log(this.torontoPoints);
     let size = 0;
     if (event.target.value > 0) {
       size = event.target.value; 

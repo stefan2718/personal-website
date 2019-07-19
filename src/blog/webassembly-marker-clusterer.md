@@ -36,4 +36,21 @@ pub fn add_to_closest_cluster(mut clusters: Vec<Cluster>, new_point: &Point) {}
 
 ## Performance
 
-You can start `console.time()` calls in your Javascript and end them in WASM! And vice versa!
+You can start `console.time()` calls in your Javascript and end them "in WASM" by using web_sys to call out to `console.timeEnd()`. And vice versa: starting a timer "in" WASM, and ending it from your regular javascript. Neato.
+
+There is some limit happening for how much info can be passed into WASM. With 100,000 points, and clustering into a single point, this is the clustered "point":
+```json
+[
+  {
+    "count": 0,
+    "center_lat": null,
+    "center_lng": null
+  },
+  {
+    "count": 34464,
+    "center_lat": 1,
+    "center_lng": 2
+  }
+]
+```
+Aha! It was because the `count` was a `u16`... 34464 = 100,000 - 2^16
