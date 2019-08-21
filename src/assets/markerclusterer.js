@@ -1,3 +1,4 @@
+/* global google */
 /**
  * @name MarkerClustererPlus for Google Maps V3
  * @version 2.1.11

@@ -1,10 +1,14 @@
-import React from 'react'
-import Helmet from 'react-helmet'
+/* global google */
+import React from 'react';
+import Helmet from 'react-helmet';
 import HomePageLayout from '../../components/HomePageLayout';
 import pointData from '../../assets/json/points.json';
+import GoogleMapReact from 'google-map-react';
+import MarkerClusterer from '../../assets/markerclusterer';
 
 class Clusterer extends React.Component {
   clusterer = null;
+  markerClusterer = null;
   torontoPoints = null;
 
   constructor() {
@@ -52,6 +56,13 @@ class Clusterer extends React.Component {
     });
   }
 
+  handleApiLoaded = (map, maps) => {
+    let markers = this.torontoPoints.map(pnt => new google.maps.Marker({
+      position: new google.maps.LatLng(pnt.lat, pnt.lng)
+    }));
+    this.markerClusterer = new MarkerClusterer(map, markers);
+  }
+
   render() {
     return (
       <HomePageLayout location={this.props.location}>
@@ -82,7 +93,15 @@ class Clusterer extends React.Component {
               <div className="point-comparison">
                 <span>
                   <h4>Original points</h4>
-                  <pre>{ JSON.stringify(this.state.points, null, 2) }</pre>
+                  <div className="gmap">
+                    <GoogleMapReact 
+                      bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
+                      defaultCenter={{ lat: 43.6532, lng: -79.3832 }}
+                      defaultZoom={8}
+                      yesIWantToUseGoogleMapApiInternals
+                      onGoogleApiLoaded={({ map, maps }) => this.handleApiLoaded(map, maps)}
+                    ></GoogleMapReact>
+                  </div>
                 </span>
                 <span>
                   <h4>"Clustered" points</h4>
