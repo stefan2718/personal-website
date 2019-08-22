@@ -7,9 +7,12 @@ import GoogleMapReact from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
 
 class Clusterer extends React.Component {
-  clusterer = null;
-  markerClusterer = null;
   torontoPoints = null;
+
+  // Webassembly version
+  wasmClusterer = null;
+  // Marker Clusterer Plus
+  mcpClusterer = null;
 
   constructor() {
     super();
@@ -20,12 +23,29 @@ class Clusterer extends React.Component {
       numberOfPoints: 1,
       points: [{lat: 1, lng: 2, price: 3}],
       clusters: [],
+      syncMap: true,
+      wasm: {
+        clusterStart: 0,
+        clusterTime: 0,
+        worstTime: 0,
+        totalClusters: 0
+      },
+      mcp: {
+        clusterStart: 0,
+        clusterTime: 0,
+        worstTime: 0,
+        totalClusters: 0
+      },
+      gmap: {
+        center: { lat: 43.6532, lng: -79.3832 },
+        zoom: 8
+      }
     };
   }
 
   componentDidMount() {
     import("@stefan2718/webassembly-marker-clusterer")
-      .then(lib => this.clusterer = lib)
+      .then(lib => this.wasmClusterer = lib)
       .catch(err => {
         console.error(err);
         this.setState({ loadWasmFailure: true });
@@ -34,18 +54,20 @@ class Clusterer extends React.Component {
       let pointObj = pointStr.split(";");
       return { lat: Number(pointObj[0]), lng: Number(pointObj[1]), price: Number(pointObj[2]) };
     });
-    // this.setState({})
   }
 
   clusterPoints = () => {
     console.time("into-wasm");
-    let a = this.clusterer.parse_and_cluster_points(this.torontoPoints);
+    let clusters = this.wasmClusterer.parse_and_cluster_points(this.torontoPoints);
     console.timeEnd("out-of-wasm");
-    this.setState({ clusters: a });
+    this.setState({ clusters });
+  }
+
+  changeSyncMap = (event) => {
+    this.setState({ syncMap: event.target.checked })
   }
 
   changeNumberOfPoints = (event) => {
-    // console.log(this.torontoPoints);
     let size = 0;
     if (event.target.value > 0) {
       size = event.target.value; 
@@ -60,7 +82,32 @@ class Clusterer extends React.Component {
     let markers = this.torontoPoints.map(pnt => new google.maps.Marker({
       position: new google.maps.LatLng(pnt.lat, pnt.lng)
     }));
-    this.markerClusterer = new MarkerClusterer(map, markers);
+    this.mcpClusterer = new MarkerClusterer(map, markers, { imagePath: "/images/m" });
+    this.mcpClusterer.addListener('clusteringbegin', mcpMap => {
+      this.setState(currentState => ({ mcp: { 
+        ...currentState.mcp,
+        clusterStart: performance.now(),
+        clusterTime: 0,
+       }}));
+    });
+    this.mcpClusterer.addListener('clusteringend', mcpMap => {
+      this.setState(currentState => { 
+        let clusterTime = Math.round(performance.now() - currentState.mcp.clusterStart);
+        let worstTime = Math.max(clusterTime, currentState.mcp.worstTime);
+        return { mcp: { 
+          ...currentState.mcp,
+          worstTime,
+          clusterTime,
+          totalClusters: mcpMap.getTotalClusters()
+        }};
+      });
+    });
+  }
+
+  handleMapChange = ({ center, zoom, bounds, marginBounds, size }) => {
+    if (this.state.syncMap) {
+      this.setState({gmap: { center, zoom }})
+    }
   }
 
   render() {
@@ -82,30 +129,70 @@ class Clusterer extends React.Component {
               allow the page to keep rendering without blocking.
             </p>
             <main>
-              <label htmlFor="numPoints">Number of points
+              {/* <label htmlFor="numPoints">Number of points
                 <input id="numPoints" type="number" value={this.state.numberOfPoints} onChange={this.changeNumberOfPoints}/>
-              </label>
-              <div>
+              </label> */}
+              <input id="syncMap" name="syncMap" type="checkbox" checked={this.state.syncMap} onChange={this.changeSyncMap}/>
+              <label htmlFor="syncMap">Synchronize map state</label>
+              {/* <div>
                 <button className="button" onClick={this.clusterPoints}>Cluster all points - in WASM!</button>
                 <span>See console for performance timings</span>
-              </div>
+              </div> */}
               { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
               <div className="point-comparison">
-                <span>
-                  <h4>Original points</h4>
+                <span className="map-and-stats">
+                  <h3>Javascript (MCP)</h3>
+                  <ul className="stats">
+                    <li><span>
+                      <span>Total Clusters: </span>
+                      <span className="stat-value">{this.state.mcp.totalClusters}</span>
+                    </span></li>
+                    <li><span>
+                      <span>Clustering Time (ms): </span>
+                      <span className="stat-value">{!!this.state.mcp.clusterTime ? this.state.mcp.clusterTime : '...waiting'}</span>
+                    </span></li>
+                    <li><span>
+                      <span>Worst Time (ms): </span>
+                      <span className="stat-value">{this.state.mcp.worstTime}</span>
+                    </span></li>
+                  </ul>
                   <div className="gmap">
                     <GoogleMapReact 
                       bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
-                      defaultCenter={{ lat: 43.6532, lng: -79.3832 }}
-                      defaultZoom={8}
+                      zoom={this.state.gmap.zoom}
+                      center={this.state.gmap.center}
+                      onChange={this.handleMapChange}
                       yesIWantToUseGoogleMapApiInternals
                       onGoogleApiLoaded={({ map, maps }) => this.handleApiLoaded(map, maps)}
                     ></GoogleMapReact>
                   </div>
                 </span>
-                <span>
-                  <h4>"Clustered" points</h4>
-                  <pre>{ JSON.stringify(this.state.clusters, null, 2) }</pre>
+                <span className="map-and-stats">
+                  <h3>WASM</h3>
+                  <ul className="stats">
+                    <li><span>
+                      <span>Total Clusters: </span>
+                      <span className="stat-value">{this.state.wasm.totalClusters}</span>
+                    </span></li>
+                    <li><span>
+                      <span>Clustering Time (ms): </span>
+                      <span className="stat-value">{!!this.state.wasm.clusterTime ? this.state.wasm.clusterTime : '...waiting'}</span>
+                    </span></li>
+                    <li><span>
+                      <span>Worst Time (ms): </span>
+                      <span className="stat-value">{this.state.wasm.worstTime}</span>
+                    </span></li>
+                  </ul>
+                  <div className="gmap">
+                    <GoogleMapReact 
+                      bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
+                      zoom={this.state.gmap.zoom}
+                      center={this.state.gmap.center}
+                      onChange={this.handleMapChange}
+                      yesIWantToUseGoogleMapApiInternals
+                      // onGoogleApiLoaded={({ map, maps }) => this.handleApiLoaded(map, maps)}
+                    ></GoogleMapReact>
+                  </div>
                 </span>
               </div>
             </main>

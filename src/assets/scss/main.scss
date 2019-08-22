@@ -1109,15 +1109,34 @@
 			display: flex;
 			flex-direction: row;
 
-			span {
+			.map-and-stats {
 				flex-basis: 100%;
+				margin: 2px;
+
+				h3 {
+					text-align: center;
+				}
+				
+				ul.stats {
+					max-width: 260px;
+					li span {
+						display: flex;
+						flex-direction: row;
+						align-content: space-between;
+						span {
+							flex-basis: 100%;
+							&.stat-value {
+								flex-basis: 0;
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 
 	.gmap {
-		min-height: 350px;
-		height: 100%;
+		height: 350px;
 	}
 
 /* Touch */
