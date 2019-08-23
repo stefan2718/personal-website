@@ -1131,6 +1131,26 @@
 						}
 					}
 				}
+
+				.wasm-cluster {
+					position: relative;
+					z-index: 1;
+					* {
+						margin: 50% 0 0 50%;
+						transform: translate(-50%, -50%);
+						position: absolute;
+					}
+					img {
+						z-index: 2;
+					}
+					span {
+						z-index: 3;
+						font-size: 11px;
+						font-family: Arial,sans-serif;
+						font-weight: bold;
+						color: black;
+					}
+				}
 			}
 		}
 	}

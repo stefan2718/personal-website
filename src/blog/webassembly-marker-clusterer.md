@@ -54,3 +54,9 @@ There is some limit happening for how much info can be passed into WASM. With 10
 ]
 ```
 Aha! It was because the `count` was a `u16`... 34464 = 100,000 - 2^16
+
+## Premature Porting Problems
+
+Google maps is obviously a very visual page element, and therefore deeply tied into the DOM. A lot of the logic of MCP is reliant on some of the objects and methods of the Maps API. This makes it difficult to draw the line for the WASM/JS boundary. What can we move into WASM and what should stay? Ideally any calculations should be in WASM and what should be returned to JS is just cluster data to be rendered.
+
+When porting an existing library, it's tempting to try to copy it over line by line. This path is futile, however, due to the fundamental differences in the JS and WASM paradigms. 

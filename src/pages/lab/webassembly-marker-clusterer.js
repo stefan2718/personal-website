@@ -22,7 +22,7 @@ class Clusterer extends React.Component {
       loadDataFailure: false,
       numberOfPoints: 1,
       points: [{lat: 1, lng: 2, price: 3}],
-      clusters: [],
+      wasmClusters: [],
       syncMap: true,
       wasm: {
         clusterStart: 0,
@@ -56,11 +56,12 @@ class Clusterer extends React.Component {
     });
   }
 
-  clusterPoints = () => {
+  wasmClusterPoints = () => {
     console.time("into-wasm");
-    let clusters = this.wasmClusterer.parse_and_cluster_points(this.torontoPoints);
+    let wasmClusters = this.wasmClusterer.parse_and_cluster_points(this.torontoPoints);
     console.timeEnd("out-of-wasm");
-    this.setState({ clusters });
+    this.setState({ wasmClusters });
+    return wasmClusters;
   }
 
   changeSyncMap = (event) => {
@@ -78,7 +79,7 @@ class Clusterer extends React.Component {
     });
   }
 
-  handleApiLoaded = (map, maps) => {
+  handleMcpMapLoaded = (map, maps) => {
     let markers = this.torontoPoints.map(pnt => new google.maps.Marker({
       position: new google.maps.LatLng(pnt.lat, pnt.lng)
     }));
@@ -104,9 +105,47 @@ class Clusterer extends React.Component {
     });
   }
 
-  handleMapChange = ({ center, zoom, bounds, marginBounds, size }) => {
+  // handleWasmMapLoaded = (map, maps) => {
+  //   map.addListener
+  // }
+
+  handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }) => {
+    if (!this.wasmClusterer) return;
+
+    this.setState(currentState => ({ wasm: { 
+      ...currentState.wasm,
+      clusterStart: performance.now(),
+      clusterTime: 0,
+    }}));
+
+    let wasmClusters = this.wasmClusterPoints();
+
+    this.setState(currentState => { 
+      let clusterTime = Math.round(performance.now() - currentState.wasm.clusterStart);
+      let worstTime = Math.max(clusterTime, currentState.wasm.worstTime);
+      return { wasm: { 
+        ...currentState.wasm,
+        worstTime,
+        clusterTime,
+        totalClusters: wasmClusters.length
+      }};
+    });
+    this.syncMapChange({ center, zoom, bounds, marginBounds, size });
+  }
+
+  renderWasmClusters = () => {
+    return this.state.wasmClusters.map(c => (
+      <div className="wasm-cluster" key={c.center_lat + c.center_lng} lat={c.center_lat} lng={c.center_lng}>
+        <img src={'/images/m' + String(c.count).length + '.png'} alt=''/>
+        <span>{c.count}</span>
+      </div>
+    ));
+  }
+
+  // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
+  syncMapChange = ({ center, zoom, bounds, marginBounds, size }) => {
     if (this.state.syncMap) {
-      this.setState({gmap: { center, zoom }})
+      this.setState({gmap: { center, zoom }});
     }
   }
 
@@ -135,7 +174,7 @@ class Clusterer extends React.Component {
               <input id="syncMap" name="syncMap" type="checkbox" checked={this.state.syncMap} onChange={this.changeSyncMap}/>
               <label htmlFor="syncMap">Synchronize map state</label>
               {/* <div>
-                <button className="button" onClick={this.clusterPoints}>Cluster all points - in WASM!</button>
+                <button className="button" onClick={this.wasmClusterPoints}>Cluster all points - in WASM!</button>
                 <span>See console for performance timings</span>
               </div> */}
               { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
@@ -161,9 +200,9 @@ class Clusterer extends React.Component {
                       bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
                       zoom={this.state.gmap.zoom}
                       center={this.state.gmap.center}
-                      onChange={this.handleMapChange}
+                      onChange={this.syncMapChange}
                       yesIWantToUseGoogleMapApiInternals
-                      onGoogleApiLoaded={({ map, maps }) => this.handleApiLoaded(map, maps)}
+                      onGoogleApiLoaded={({ map, maps }) => this.handleMcpMapLoaded(map, maps)}
                     ></GoogleMapReact>
                   </div>
                 </span>
@@ -188,10 +227,12 @@ class Clusterer extends React.Component {
                       bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
                       zoom={this.state.gmap.zoom}
                       center={this.state.gmap.center}
-                      onChange={this.handleMapChange}
+                      onChange={this.handleWasmMapChange}
                       yesIWantToUseGoogleMapApiInternals
-                      // onGoogleApiLoaded={({ map, maps }) => this.handleApiLoaded(map, maps)}
-                    ></GoogleMapReact>
+                      // onGoogleApiLoaded={({ map, maps }) => this.handleWasmMapLoaded(map, maps)}
+                    >
+                      {this.renderWasmClusters()}
+                    </GoogleMapReact>
                   </div>
                 </span>
               </div>
