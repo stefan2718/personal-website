@@ -5,14 +5,18 @@ import HomePageLayout from '../../components/HomePageLayout';
 import pointData from '../../assets/json/points.json';
 import GoogleMapReact from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
+import WasmMapClusters from '../../components/lab/WasmMapClusters';
 
 class Clusterer extends React.Component {
   torontoPoints = null;
 
   // Webassembly version
   wasmClusterer = null;
+  wasmMap = null;
+
   // Marker Clusterer Plus
   mcpClusterer = null;
+  mcpMap = null;
 
   constructor() {
     super();
@@ -56,16 +60,26 @@ class Clusterer extends React.Component {
     });
   }
 
-  wasmClusterPoints = () => {
+  wasmClusterPoints = (zoom) => {
     console.time("into-wasm");
-    let wasmClusters = this.wasmClusterer.parse_and_cluster_points(this.torontoPoints);
+    let wasmClusters = this.wasmClusterer.parse_and_cluster_points(this.torontoPoints, zoom);
     console.timeEnd("out-of-wasm");
     this.setState({ wasmClusters });
     return wasmClusters;
   }
 
   changeSyncMap = (event) => {
-    this.setState({ syncMap: event.target.checked })
+    if (event.target.checked) {
+      this.setState({ 
+        syncMap: event.target.checked,
+        gmap: {
+          center: { lat: this.mcpMap.center.lat(), lng: this.mcpMap.center.lng() },
+          zoom: this.mcpMap.zoom
+        }
+      })
+    } else {
+      this.setState({ syncMap: event.target.checked })
+    }
   }
 
   changeNumberOfPoints = (event) => {
@@ -80,6 +94,7 @@ class Clusterer extends React.Component {
   }
 
   handleMcpMapLoaded = (map, maps) => {
+    this.mcpMap = map;
     let markers = this.torontoPoints.map(pnt => new google.maps.Marker({
       position: new google.maps.LatLng(pnt.lat, pnt.lng)
     }));
@@ -105,9 +120,13 @@ class Clusterer extends React.Component {
     });
   }
 
-  // handleWasmMapLoaded = (map, maps) => {
-  //   map.addListener
-  // }
+  handleWasmMapLoaded = (map, maps) => {
+    this.wasmMap = map;
+    this.handleWasmMapChange({ 
+      center: { lat: map.center.lat(), lng: map.center.lng() },
+      zoom: map.zoom,
+    })
+  }
 
   handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }) => {
     if (!this.wasmClusterer) return;
@@ -118,7 +137,7 @@ class Clusterer extends React.Component {
       clusterTime: 0,
     }}));
 
-    let wasmClusters = this.wasmClusterPoints();
+    let wasmClusters = this.wasmClusterPoints(zoom);
 
     this.setState(currentState => { 
       let clusterTime = Math.round(performance.now() - currentState.wasm.clusterStart);
@@ -131,15 +150,6 @@ class Clusterer extends React.Component {
       }};
     });
     this.syncMapChange({ center, zoom, bounds, marginBounds, size });
-  }
-
-  renderWasmClusters = () => {
-    return this.state.wasmClusters.map(c => (
-      <div className="wasm-cluster" key={c.center_lat + c.center_lng} lat={c.center_lat} lng={c.center_lng}>
-        <img src={'/images/m' + String(c.count).length + '.png'} alt=''/>
-        <span>{c.count}</span>
-      </div>
-    ));
   }
 
   // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
@@ -183,15 +193,15 @@ class Clusterer extends React.Component {
                   <h3>Javascript (MCP)</h3>
                   <ul className="stats">
                     <li><span>
-                      <span>Total Clusters: </span>
+                      <span>Clusters created: </span>
                       <span className="stat-value">{this.state.mcp.totalClusters}</span>
                     </span></li>
                     <li><span>
-                      <span>Clustering Time (ms): </span>
+                      <span>Clustering time (ms): </span>
                       <span className="stat-value">{!!this.state.mcp.clusterTime ? this.state.mcp.clusterTime : '...waiting'}</span>
                     </span></li>
                     <li><span>
-                      <span>Worst Time (ms): </span>
+                      <span>Worst time (ms): </span>
                       <span className="stat-value">{this.state.mcp.worstTime}</span>
                     </span></li>
                   </ul>
@@ -210,15 +220,15 @@ class Clusterer extends React.Component {
                   <h3>WASM</h3>
                   <ul className="stats">
                     <li><span>
-                      <span>Total Clusters: </span>
+                      <span>Clusters created: </span>
                       <span className="stat-value">{this.state.wasm.totalClusters}</span>
                     </span></li>
                     <li><span>
-                      <span>Clustering Time (ms): </span>
+                      <span>Clustering time (ms): </span>
                       <span className="stat-value">{!!this.state.wasm.clusterTime ? this.state.wasm.clusterTime : '...waiting'}</span>
                     </span></li>
                     <li><span>
-                      <span>Worst Time (ms): </span>
+                      <span>Worst time (ms): </span>
                       <span className="stat-value">{this.state.wasm.worstTime}</span>
                     </span></li>
                   </ul>
@@ -229,9 +239,11 @@ class Clusterer extends React.Component {
                       center={this.state.gmap.center}
                       onChange={this.handleWasmMapChange}
                       yesIWantToUseGoogleMapApiInternals
-                      // onGoogleApiLoaded={({ map, maps }) => this.handleWasmMapLoaded(map, maps)}
+                      onGoogleApiLoaded={({ map, maps }) => this.handleWasmMapLoaded(map, maps)}
                     >
-                      {this.renderWasmClusters()}
+                      {this.state.wasmClusters.map(c =>
+                        <WasmMapClusters count={c.count} key={c.uuid} lat={c.center_lat} lng={c.center_lng}></WasmMapClusters>
+                      )}
                     </GoogleMapReact>
                   </div>
                 </span>

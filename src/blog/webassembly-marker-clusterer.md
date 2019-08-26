@@ -59,4 +59,8 @@ Aha! It was because the `count` was a `u16`... 34464 = 100,000 - 2^16
 
 Google maps is obviously a very visual page element, and therefore deeply tied into the DOM. A lot of the logic of MCP is reliant on some of the objects and methods of the Maps API. This makes it difficult to draw the line for the WASM/JS boundary. What can we move into WASM and what should stay? Ideally any calculations should be in WASM and what should be returned to JS is just cluster data to be rendered.
 
-When porting an existing library, it's tempting to try to copy it over line by line. This path is futile, however, due to the fundamental differences in the JS and WASM paradigms. 
+When porting an existing library, it's tempting to try to copy it over line by line. This path is futile, however, due to the fundamental differences in the JS and WASM paradigms. For example, MCP frequently calls or extends Google's Maps API and its objects while making it's calculations. We want to avoid frequent calls across the JS/WASM boundary, and thus have to find alternatives to these calls, such as using a custom implementation of `.getProjection()` that can convert between lat/lng and pixels using a Web Mercator projection.
+
+## v0.0.5 webassembly-marker-clusterer
+
+This is the first version that produces multiple clusters instead of a single cluster. At a low zoom (zoomed out to view all or most points), it performs approximately 100x faster than MCP. However, it is still missing a lot of MCPs optimizations, such as ignoring points outside of the displayed map bounds. Therefore when we zoom-in more, the WASM version is much slower, as it is iterating over many more clusters.
