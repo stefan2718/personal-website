@@ -87,8 +87,8 @@ class Clusterer extends React.Component {
       this.setState({ 
         syncMap: event.target.checked,
         gmap: {
-          center: { lat: this.mcpMap.center.lat(), lng: this.mcpMap.center.lng() },
-          zoom: this.mcpMap.zoom
+          center: { lat: this.mcpMap.getCenter().lat(), lng: this.mcpMap.getCenter().lng() },
+          zoom: this.mcpMap.getZoom()
         }
       })
     } else {
