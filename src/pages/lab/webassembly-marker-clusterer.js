@@ -132,6 +132,52 @@ class Clusterer extends React.Component {
         }};
       });
     });
+    setTimeout(() => this.runTest(), 3000)
+  }
+
+  runTest = () => {
+    const point = new google.maps.LatLng(43.6532, -79.3832);
+    const results = Array(20);
+
+    this.setState({ gmap: {
+      center: { lat: 43.6532, lng: -79.3832 },
+      zoom: 3
+    }});
+    setTimeout(() => this.testProjectionAtZoom(3, results, point), 3000);
+  }
+
+  testProjectionAtZoom = (zoom, results, point) => {
+    if (zoom >= results.length) {
+      console.log(results);
+      return;
+    }
+    let gridSize = 60;
+
+    let projection = this.mcpClusterer.getProjection();
+    let trPix = projection.fromLatLngToDivPixel(point);
+    trPix.x += gridSize;
+    trPix.y -= gridSize;
+  
+    let blPix = projection.fromLatLngToDivPixel(point);
+    blPix.x -= gridSize;
+    blPix.y += gridSize;
+  
+    // Convert the pixel points back to LatLng
+    let ne = projection.fromDivPixelToLatLng(trPix);
+    let sw = projection.fromDivPixelToLatLng(blPix);
+
+    results[zoom] = {
+      north_east_lat: ne.lat(),
+      north_east_lng: ne.lng(),
+      south_west_lat: sw.lat(),
+      south_west_lng: sw.lng()
+    }
+
+    this.setState({ gmap: {
+      center: { lat: 43.6532, lng: -79.3832 },
+      zoom: zoom + 1
+    }});
+    setTimeout(this.testProjectionAtZoom.bind(this, zoom + 1, results, point), 3000);
   }
 
   handleWasmMapLoaded = (map, maps) => {
