@@ -48,21 +48,35 @@ class Clusterer extends React.Component {
   }
 
   componentDidMount() {
-    import("@stefan2718/webassembly-marker-clusterer")
-      .then(lib => this.wasmClusterer = lib)
-      .catch(err => {
-        console.error(err);
-        this.setState({ loadWasmFailure: true });
-      });
     this.torontoPoints = pointData.map(pointStr => {
       let pointObj = pointStr.split(";");
       return { lat: Number(pointObj[0]), lng: Number(pointObj[1]), price: Number(pointObj[2]) };
     });
+    import("@stefan2718/webassembly-marker-clusterer")
+      .then(lib => {
+        this.wasmClusterer = lib;
+        this.wasmClusterer.add_points(this.torontoPoints);
+        if (this.wasmMap) {
+          this.updateWasmMap(this.wasmMap);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        this.setState({ loadWasmFailure: true });
+      });
   }
 
-  wasmClusterPoints = (zoom) => {
+  wasmClusterPoints = (bounds, zoom) => {
+    if (!bounds || !zoom) return;
+    
+    let wasmBounds = {
+      north_east_lat: bounds.ne.lat,
+      north_east_lng: bounds.ne.lng,
+      south_west_lat: bounds.sw.lat,
+      south_west_lng: bounds.sw.lng,
+    };
     console.time("into-wasm");
-    let wasmClusters = this.wasmClusterer.parse_and_cluster_points(this.torontoPoints, zoom);
+    let wasmClusters = this.wasmClusterer.cluster_points_in_bounds(wasmBounds, zoom);
     console.timeEnd("out-of-wasm");
     this.setState({ wasmClusters });
     return wasmClusters;
@@ -122,14 +136,28 @@ class Clusterer extends React.Component {
 
   handleWasmMapLoaded = (map, maps) => {
     this.wasmMap = map;
+    this.updateWasmMap(map);
+  }
+
+  updateWasmMap = (map) => {
     this.handleWasmMapChange({ 
-      center: { lat: map.center.lat(), lng: map.center.lng() },
-      zoom: map.zoom,
-    })
+      center: { lat: map.getCenter().lat(), lng: map.getCenter().lng() },
+      zoom: map.getZoom(),
+      bounds: {
+        ne: {
+          lat: map.getBounds().getNorthEast().lat(),
+          lng: map.getBounds().getNorthEast().lng(),
+        },
+        sw: {
+          lat: map.getBounds().getSouthWest().lat(),
+          lng: map.getBounds().getSouthWest().lng(),
+        }
+      }
+    });
   }
 
   handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }) => {
-    if (!this.wasmClusterer) return;
+    if (!this.wasmClusterer || !bounds || !zoom) return;
 
     this.setState(currentState => ({ wasm: { 
       ...currentState.wasm,
@@ -137,7 +165,7 @@ class Clusterer extends React.Component {
       clusterTime: 0,
     }}));
 
-    let wasmClusters = this.wasmClusterPoints(zoom);
+    let wasmClusters = this.wasmClusterPoints(bounds, zoom);
 
     this.setState(currentState => { 
       let clusterTime = Math.round(performance.now() - currentState.wasm.clusterStart);
