@@ -1,0 +1,8 @@
+overwrite: false
+schema: "http://localhost:8000/___graphql"
+documents:
+  - "src/**/*.tsx"
+generates:
+  src/graphql.ts:
+    plugins:
+      - "typescript"

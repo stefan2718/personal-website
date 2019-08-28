@@ -1,15 +1,13 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 import HomePageLayout from '../components/HomePageLayout'
-import { labTiles, getTiles } from "../util/lab-routes";
+import { IGatsbyProps } from '../util/interfaces';
+import LabRoutes from '../components/LabRoutes';
 
-class Lab extends React.Component {
+class Lab extends React.Component<IGatsbyProps> {
 
-  constructor() {
-    super();
-
-    this.state = {
-    };
+  constructor(props: IGatsbyProps) {
+    super(props);
   }
 
   render() {
@@ -27,7 +25,7 @@ class Lab extends React.Component {
           <div className="inner-main">
             <h1>The Lab</h1>
             <main>
-              {getTiles(labTiles)}
+              <LabRoutes></LabRoutes>
             </main>
           </div>
         </div>

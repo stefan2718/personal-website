@@ -4,14 +4,12 @@ import { graphql } from "gatsby"
 
 import BlogSummary from '../components/BlogSummary'
 import HomePageLayout from '../components/HomePageLayout'
+import { IGatsbyProps } from '../util/interfaces';
 
-class Blog extends React.Component {
+class Blog extends React.Component<IGatsbyProps> {
 
-  constructor() {
-    super();
-
-    this.state = {
-    };
+  constructor(props: IGatsbyProps) {
+    super(props);
   }
 
   render() {

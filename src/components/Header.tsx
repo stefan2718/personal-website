@@ -3,7 +3,7 @@ import { Link } from 'gatsby'
 
 import Footer from './Footer'
 import avatar from '../assets/images/avatar.jpg'
-import { Location } from '@reach/router';
+import { Location, WindowLocation } from '@reach/router';
 
 const routes = [
   { path: "/",      label: "Home" },
@@ -13,7 +13,7 @@ const routes = [
 
 class Header extends React.Component {
 
-  getRoutes = (location) => {
+  getRoutes = (location: WindowLocation) => {
     return routes
       .filter(route => location.pathname !== route.path)
       .map(route => (

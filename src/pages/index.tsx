@@ -4,15 +4,13 @@ import { Link, graphql } from 'gatsby'
 
 import HomePageLayout from '../components/HomePageLayout'
 import BlogSummary from '../components/BlogSummary'
-import { labTiles, getTiles } from "../util/lab-routes";
+import { IGatsbyProps } from '../util/interfaces';
+import LabRoutes from '../components/LabRoutes';
 
-class HomeIndex extends React.Component {
+class HomeIndex extends React.Component<IGatsbyProps> {
 
-  constructor() {
-    super();
-
-    this.state = {
-    };
+  constructor(props: IGatsbyProps) {
+    super(props);
   }
 
   render() {
@@ -56,7 +54,7 @@ class HomeIndex extends React.Component {
             <h2>The Lab</h2>
             <p>These are some code experiments that I've been working on.</p>
             <div>
-              {getTiles(labTiles)}
+              <LabRoutes></LabRoutes>
             </div>
             <ul className="actions" style={{marginTop: "20px"}}>
               <li><Link to="/lab" className="button">Tour the Lab</Link></li>

@@ -1,7 +1,8 @@
 import React from "react"
 import { Link } from 'gatsby'
+import { IBlogSummary } from "../util/interfaces";
 
-export default function Template(props) {
+export default function Template(props: IBlogSummary) {
   return (
     <article style={{marginBottom:'50px'}}>
       <div style={{display:'flex', justifyContent: 'space-between', marginBottom:'10px'}}>

@@ -1,7 +1,8 @@
 import React from "react"
 import { Link } from 'gatsby'
+import { ILabTile } from "../util/interfaces";
 
-export default function (props) {
+export default function (props: ILabTile) {
   return (
     <Link className="lab-tile" to={props.path}>
       <div className="tile-top">

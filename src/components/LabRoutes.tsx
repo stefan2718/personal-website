@@ -1,8 +1,8 @@
 import React from 'react'
 import wasmImg from '../assets/images/marker-clusterer-plus-example.png';
-import LabTile from '../components/LabTile';
+import LabTile from './LabTile';
 
-export const labTiles = [
+const labTiles = [
   {
     title: 'WebAssembly Map Point Clustering',
     desc: 'A comparison of WebAssembly Vs JavaScript for clustering points on a map.',
@@ -12,8 +12,12 @@ export const labTiles = [
   }
 ];
 
-export const getTiles = (tileData) => {
-  return tileData.map(tile => (
-    <LabTile key={tile.path} title={tile.title} image={tile.image} desc={tile.desc} path={tile.path} imageAlt={tile.imageAlt}></LabTile>
-  ));
+export default function () {
+  return (
+    <React.Fragment>
+      {labTiles.map(tile => (
+        <LabTile key={tile.path} title={tile.title} image={tile.image} desc={tile.desc} path={tile.path} imageAlt={tile.imageAlt}></LabTile>
+      ))}
+    </React.Fragment>
+  );
 }

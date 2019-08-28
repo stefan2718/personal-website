@@ -2,10 +2,9 @@ import React from "react"
 import Helmet from 'react-helmet'
 import { graphql } from "gatsby"
 import HomePageLayout from "./HomePageLayout";
+import { Query } from "../graphql";
 
-export default function Template({
-  data, // this prop will be injected by the GraphQL query below.
-}) {
+export default function Template({ data }: { data: Query }) {
   const { markdownRemark } = data // data.markdownRemark holds our post data
   const { frontmatter, html } = markdownRemark
   return (
