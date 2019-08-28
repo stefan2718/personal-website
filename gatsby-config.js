@@ -8,6 +8,7 @@ module.exports = {
     'gatsby-plugin-react-helmet',
     'gatsby-plugin-catch-links',
     'gatsby-plugin-sharp',
+    'gatsby-plugin-typescript',
     {
       resolve: 'gatsby-plugin-manifest',
       options: {
