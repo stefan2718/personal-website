@@ -43,6 +43,7 @@ export interface IClustererState {
   loadWasmFailure: boolean;
   loadDataFailure: boolean;
   wasmClusters: IWasmCluster[],
+  clickedMcpCluster?: IClickedCluster;
   syncMap: boolean;
   wasm: IClustererStats;
   mcp: IClustererStats;
@@ -50,6 +51,13 @@ export interface IClustererState {
     center: { lat: number, lng: number },
     zoom: number
   }
+}
+
+export interface IClickedCluster {
+  size: number;
+  center: google.maps.LatLngLiteral;
+  bounds: google.maps.LatLngBoundsLiteral;
+  markers: google.maps.LatLngLiteral[];
 }
 
 export interface ILabTile {
