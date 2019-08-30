@@ -225,6 +225,14 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
             <main>
               <input id="syncMap" name="syncMap" type="checkbox" checked={this.state.syncMap} onChange={this.changeSyncMap}/>
               <label htmlFor="syncMap">Synchronize map state</label>
+              <details>
+                <summary>Map state</summary>
+                <ul>
+                  <li>Zoom: {this.state.gmap.zoom} </li>
+                  <li>Center lat: {this.state.gmap.center.lat} </li>
+                  <li>Center lng: {this.state.gmap.center.lng}</li>
+                </ul>
+              </details>
               { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
               <div className="point-comparison">
                 <span className="map-and-stats">
