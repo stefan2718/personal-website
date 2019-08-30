@@ -64,3 +64,12 @@ When porting an existing library, it's tempting to try to copy it over line by l
 ## v0.0.5 webassembly-marker-clusterer
 
 This is the first version that produces multiple clusters instead of a single cluster. At a low zoom (zoomed out to view all or most points), it performs approximately 100x faster than MCP. However, it is still missing a lot of MCPs optimizations, such as ignoring points outside of the displayed map bounds. Therefore when we zoom-in more, the WASM version is much slower, as it is iterating over many more clusters.
+
+## OOM?
+
+```
+RangeError: WebAssembly.instantiate(): Out of memory: wasm memory
+```
+
+Chrome bug with dev tools open
+https://stackoverflow.com/questions/55039923/why-does-chrome-eventually-throw-out-of-memory-wasm-memory-after-repeatedly-r

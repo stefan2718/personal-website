@@ -6,6 +6,7 @@ import GoogleMapReact, { ChangeEventValue, Maps, Bounds } from 'google-map-react
 import MarkerClusterer from '../../assets/markerclusterer';
 import WasmMapCluster from '../../components/lab/WasmMapCluster';
 import { IGatsbyProps, IClustererState, IPoint, IWasmCluster } from '../../util/interfaces';
+import ClusteringStats from '../../components/lab/ClusteringStats';
 
 class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   torontoPoints: IPoint[] = [];
@@ -17,6 +18,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   // Marker Clusterer Plus
   mcpClusterer: MarkerClusterer = null;
   mcpMap: google.maps.Map;
+
+  logWasmTime = false;
 
   constructor(props: IGatsbyProps) {
     super(props);
@@ -53,6 +56,11 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     import("@stefan2718/webassembly-marker-clusterer")
       .then(lib => {
         this.wasmClusterer = lib;
+        this.wasmClusterer.configure({
+          grid_size: 60,
+          average_center: false,
+          log_time: this.logWasmTime
+        });
         this.wasmClusterer.add_points(this.torontoPoints);
         if (this.wasmMap) {
           this.updateWasmMap(this.wasmMap);
@@ -73,9 +81,9 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       south: bounds.sw.lat,
       west: bounds.sw.lng,
     };
-    console.time("into-wasm");
+    if (this.logWasmTime) console.time("into-wasm");
     let wasmClusters = this.wasmClusterer.cluster_points_in_bounds(wasmBounds, zoom);
-    console.timeEnd("out-of-wasm");
+    if (this.logWasmTime) console.timeEnd("out-of-wasm");
     this.setState({ wasmClusters });
     return wasmClusters;
   }
@@ -233,24 +241,10 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                   <li>Center lng: {this.state.gmap.center.lng}</li>
                 </ul>
               </details>
-              { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
               <div className="point-comparison">
                 <span className="map-and-stats">
                   <h3>Javascript (MCP)</h3>
-                  <ul className="stats">
-                    <li><span>
-                      <span>Clusters created: </span>
-                      <span className="stat-value">{this.state.mcp.totalClusters}</span>
-                    </span></li>
-                    <li><span>
-                      <span>Clustering time (ms): </span>
-                      <span className="stat-value">{!!this.state.mcp.clusterTime ? this.state.mcp.clusterTime : '...waiting'}</span>
-                    </span></li>
-                    <li><span>
-                      <span>Worst time (ms): </span>
-                      <span className="stat-value">{this.state.mcp.worstTime}</span>
-                    </span></li>
-                  </ul>
+                  <ClusteringStats {...this.state.mcp} comparisonTime={this.state.wasm.clusterTime}></ClusteringStats>
                   <div className="gmap">
                     <GoogleMapReact 
                       bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
@@ -268,20 +262,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                 </span>
                 <span className="map-and-stats">
                   <h3>WASM</h3>
-                  <ul className="stats">
-                    <li><span>
-                      <span>Clusters created: </span>
-                      <span className="stat-value">{this.state.wasm.totalClusters}</span>
-                    </span></li>
-                    <li><span>
-                      <span>Clustering time (ms): </span>
-                      <span className="stat-value">{!!this.state.wasm.clusterTime ? this.state.wasm.clusterTime : '...waiting'}</span>
-                    </span></li>
-                    <li><span>
-                      <span>Worst time (ms): </span>
-                      <span className="stat-value">{this.state.wasm.worstTime}</span>
-                    </span></li>
-                  </ul>
+                  <span className="error">{ !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}</span>
+                  <ClusteringStats {...this.state.wasm} comparisonTime={this.state.mcp.clusterTime}></ClusteringStats>
                   <div className="gmap">
                     <GoogleMapReact 
                       bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
