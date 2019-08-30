@@ -37,6 +37,14 @@ export interface IWasmCluster {
   count: number;
   center_lat: number;
   center_lng: number;
+  bounds: IWasmBounds;
+}
+
+export interface IWasmBounds {
+  north: number;
+  east: number;
+  south: number;
+  west: number;
 }
 
 export interface IClustererState {
@@ -44,6 +52,7 @@ export interface IClustererState {
   loadDataFailure: boolean;
   wasmClusters: IWasmCluster[],
   clickedMcpCluster?: IClickedCluster;
+  clickedWasmCluster?: IWasmCluster;
   syncMap: boolean;
   wasm: IClustererStats;
   mcp: IClustererStats;

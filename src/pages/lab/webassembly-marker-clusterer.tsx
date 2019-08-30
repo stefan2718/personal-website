@@ -2,10 +2,10 @@ import React from 'react';
 import Helmet from 'react-helmet';
 import HomePageLayout from '../../components/HomePageLayout';
 import pointData from '../../assets/json/points.json';
-import GoogleMapReact, { ChangeEventValue, Maps, Bounds, ClickEventValue } from 'google-map-react';
+import GoogleMapReact, { ChangeEventValue, Maps, Bounds } from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
-import WasmMapClusters from '../../components/lab/WasmMapClusters';
-import { IGatsbyProps, IClustererState, IPoint } from '../../util/interfaces';
+import WasmMapCluster from '../../components/lab/WasmMapCluster';
+import { IGatsbyProps, IClustererState, IPoint, IWasmCluster } from '../../util/interfaces';
 
 class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   torontoPoints: IPoint[] = [];
@@ -70,10 +70,10 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     if (!bounds || !zoom) return;
     
     let wasmBounds = {
-      north_east_lat: bounds.ne.lat,
-      north_east_lng: bounds.ne.lng,
-      south_west_lat: bounds.sw.lat,
-      south_west_lng: bounds.sw.lng,
+      north: bounds.ne.lat,
+      east: bounds.ne.lng,
+      south: bounds.sw.lat,
+      west: bounds.sw.lng,
     };
     console.time("into-wasm");
     let wasmClusters = this.wasmClusterer.cluster_points_in_bounds(wasmBounds, zoom);
@@ -196,8 +196,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     this.syncMapChange({ center, zoom, bounds, marginBounds, size });
   }
 
-  onWasmClusterClick = (click: ClickEventValue) => {
-    console.log(click);
+  onWasmClusterClick = (cluster: IWasmCluster) => {
+    this.setState({ clickedWasmCluster: cluster });
   }
 
   // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
@@ -263,9 +263,10 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                       onGoogleApiLoaded={({ map, maps }) => this.handleMcpMapLoaded(map, maps)}
                     ></GoogleMapReact>
                   </div>
-                  <div>
+                  <details>
+                    <summary>Clicked cluster details</summary>
                     <pre>{JSON.stringify(this.state.clickedMcpCluster, null, 2)}</pre>
-                  </div>
+                  </details>
                 </span>
                 <span className="map-and-stats">
                   <h3>WASM</h3>
@@ -291,18 +292,22 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                       onChange={this.handleWasmMapChange}
                       yesIWantToUseGoogleMapApiInternals
                       onGoogleApiLoaded={({ map, maps }) => this.handleWasmMapLoaded(map, maps)}
-                      onClick={this.onWasmClusterClick}
                     >
                       {this.state.wasmClusters.map(c =>
-                        <WasmMapClusters 
-                          count={c.count}
+                        <WasmMapCluster 
+                          onClick={this.onWasmClusterClick}
+                          {...c}
                           key={c.uuid}
                           lat={c.center_lat}
                           lng={c.center_lng}
-                        ></WasmMapClusters>
+                        ></WasmMapCluster>
                       )}
                     </GoogleMapReact>
                   </div>
+                  <details>
+                    <summary>Clicked cluster details</summary>
+                    <pre>{JSON.stringify(this.state.clickedWasmCluster, null, 2)}</pre>
+                  </details>
                 </span>
               </div>
             </main>
