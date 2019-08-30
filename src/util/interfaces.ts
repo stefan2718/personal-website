@@ -65,7 +65,7 @@ export interface IClustererState {
 export interface IClickedCluster {
   size: number;
   center: google.maps.LatLngLiteral;
-  bounds: google.maps.LatLngBoundsLiteral;
+  bounds?: google.maps.LatLngBoundsLiteral;
   markers: google.maps.LatLngLiteral[];
 }
 

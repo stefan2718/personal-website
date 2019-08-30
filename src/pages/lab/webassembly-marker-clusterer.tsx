@@ -24,8 +24,6 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     this.state = {
       loadWasmFailure: false,
       loadDataFailure: false,
-      // numberOfPoints: 1,
-      // points: [{lat: 1, lng: 2, price: 3}],
       wasmClusters: [],
       syncMap: true,
       wasm: {
@@ -96,22 +94,21 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     }
   }
 
-  // changeNumberOfPoints = (event) => {
-  //   let size = 0;
-  //   if (event.target.value > 0) {
-  //     size = event.target.value; 
-  //   }
-  //   this.setState({
-  //     numberOfPoints: size,
-  //     points: Array(Number(size)).fill({ lat: 1, lng: 2, price: 3 }),
-  //   });
-  // }
-
   handleMcpMapLoaded = (map: google.maps.Map, maps: Maps) => {
     this.mcpMap = map;
-    let markers = this.torontoPoints.map(pnt => new google.maps.Marker({
-      position: new google.maps.LatLng(pnt.lat, pnt.lng)
-    }));
+    let markers = this.torontoPoints.map(pnt => {
+      let marker = new google.maps.Marker({
+        position: new google.maps.LatLng(pnt.lat, pnt.lng)
+      });
+      marker.addListener('click', () => {
+        this.setState({ clickedMcpCluster: {
+          size: 1,
+          center: { lat: pnt.lat, lng: pnt.lng },
+          markers: [{ lat: pnt.lat, lng: pnt.lng }]
+        }});
+      });
+      return marker;
+    });
     this.mcpClusterer = new MarkerClusterer(map, markers, { imagePath: "/images/m", zoomOnClick: false });
     this.mcpClusterer.addListener('clusteringbegin', mcpMap => {
       this.setState(currentState => ({ mcp: { 
@@ -226,15 +223,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
               allow the page to keep rendering without blocking.
             </p>
             <main>
-              {/* <label htmlFor="numPoints">Number of points
-                <input id="numPoints" type="number" value={this.state.numberOfPoints} onChange={this.changeNumberOfPoints}/>
-              </label> */}
               <input id="syncMap" name="syncMap" type="checkbox" checked={this.state.syncMap} onChange={this.changeSyncMap}/>
               <label htmlFor="syncMap">Synchronize map state</label>
-              {/* <div>
-                <button className="button" onClick={this.wasmClusterPoints}>Cluster all points - in WASM!</button>
-                <span>See console for performance timings</span>
-              </div> */}
               { !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}
               <div className="point-comparison">
                 <span className="map-and-stats">

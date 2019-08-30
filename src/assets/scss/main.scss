@@ -1038,6 +1038,7 @@
 	}
 
 	$mini-header-width: 7em;
+	$main-content-width: 700px;
 	.mini-header {
 		#header {
 			width: $mini-header-width;
@@ -1074,7 +1075,7 @@
 			max-width: calc(100% - #{$mini-header-width});
 
 			.inner-main {
-				max-width: 700px;
+				max-width: $main-content-width;
 				margin: auto;
 			}
 		}
@@ -1108,9 +1109,11 @@
 		main .point-comparison {
 			display: flex;
 			flex-direction: row;
+			flex-wrap: wrap;
 
 			.map-and-stats {
-				flex-basis: 100%;
+				flex-basis: $main-content-width / 2 - 4px;
+				max-width: $main-content-width / 2 - 4px;
 				margin: 2px;
 
 				h3 {
@@ -1137,7 +1140,6 @@
 					position: relative;
 					z-index: 1;
 					* {
-						margin: 50% 0 0 50%;
 						transform: translate(-50%, -50%);
 						position: absolute;
 						cursor: pointer;
@@ -1152,6 +1154,10 @@
 						font-weight: bold;
 						color: black;
 					}
+				}
+				.wasm-marker {
+					transform: translate(-50%, -100%);
+					cursor: pointer;
 				}
 			}
 		}
