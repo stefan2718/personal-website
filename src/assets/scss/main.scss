@@ -1124,7 +1124,7 @@
 					color: red;
 					font-size: 1.2em;
 				}
-				
+
 				ul.stats {
 					max-width: 260px;
 					margin: 0 auto 2em auto;
@@ -1139,6 +1139,10 @@
 							}
 						}
 					}
+				}
+				
+				details > pre {
+					overflow: auto;
 				}
 
 				.wasm-cluster {

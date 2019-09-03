@@ -13,7 +13,7 @@ A work in progress article comparing two implementations of map point clustering
 
 I'm working towards a side-by-side comparison of the popular [MarkerClusterPlus for Google Maps](https://github.com/googlemaps/v3-utility-library/tree/master/markerclustererplus) library and a [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly) implementation. MarkerClusterPlus clusters map points together when you have too many to display. This can become fairly CPU intensive when you have thousands of map points. I'd like to see what benefits there will be from moving this clustering logic into a WebAssembly module. Hopefully, by running it outside of the main JavaScript event loop, it will take less time, and allow the page to keep rendering without blocking.
 
-[My progress is here](/lab/webassembly-marker-clusterer) 
+** [My progress is here](/lab/webassembly-marker-clusterer) **
 
 ## Progress notes
 
@@ -63,7 +63,7 @@ When porting an existing library, it's tempting to try to copy it over line by l
 
 ## v0.0.5 webassembly-marker-clusterer
 
-This is the first version that produces multiple clusters instead of a single cluster. At a low zoom (zoomed out to view all or most points), it performs approximately 100x faster than MCP. However, it is still missing a lot of MCPs optimizations, such as ignoring points outside of the displayed map bounds. Therefore when we zoom-in more, the WASM version is much slower, as it is iterating over many more clusters.
+This is the first version that produces multiple clusters instead of a single cluster. At a low zoom (zoomed out to view all or most points), it performs approximately 30x-100x faster than MCP. However, it is still missing a lot of MCPs optimizations, such as ignoring points outside of the displayed map bounds. Therefore when we zoom-in more, the WASM version is much slower, as it is iterating over many more clusters.
 
 ## OOM?
 
@@ -71,5 +71,15 @@ This is the first version that produces multiple clusters instead of a single cl
 RangeError: WebAssembly.instantiate(): Out of memory: wasm memory
 ```
 
-Chrome bug with dev tools open
+Looks like a Chrome bug with dev tools open
 https://stackoverflow.com/questions/55039923/why-does-chrome-eventually-throw-out-of-memory-wasm-memory-after-repeatedly-r
+
+## Cluster state and clustering idempotency
+
+When you pan the map around at a consistent zoom level, MCP maintains the calculated state of existing clusters. This means when you partially move the map, markers that should now be visible will either be added to existing clusters, or trigger the creation of a new cluster. This creates a better user experience by preventing existing clusters from disappearing during panning, but it has the side effect of preventing the clustering process from being idempotent. For example, picture 3 nearby coordinates, A, B, and C. If you create initial clusters at A, then pan to B, you will end up with different resulting clusters than if you create intial clusters at C, then pan to B.
+
+HELPFUL EXPLANATORY IMAGE??
+
+## v0.0.6 webassembly-marker-clusterer
+
+The difference in clusters between MCP and v0.0.5 was due to the v0.0.5 averaging the center of a cluster as points are added to it, which is non-default behaviour for MCP. Before I realized this, I had thought that the difference may have been caused by the difference between Google's `getProjection()` function and the custom implementation available in the `googleprojection` [cargo package](https://crates.io/crates/googleprojection). This package is an implementation of a Web Mercator project that may have matched Google's functionality when it was written 3 years ago, but now has minor variance (0.1% difference at high zooms, much less at lower zooms), likely due to the major updates to Google Maps in 2018, when it began showing a spherical globe. 

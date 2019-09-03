@@ -57,7 +57,6 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       .then(lib => {
         this.wasmClusterer = lib;
         this.wasmClusterer.configure({
-          grid_size: 60,
           average_center: false,
           log_time: this.logWasmTime
         });
@@ -243,29 +242,11 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
               </details>
               <div className="point-comparison">
                 <span className="map-and-stats">
-                  <h3>Javascript (MCP)</h3>
-                  <ClusteringStats {...this.state.mcp} comparisonTime={this.state.wasm.clusterTime}></ClusteringStats>
-                  <div className="gmap">
-                    <GoogleMapReact 
-                      bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
-                      zoom={this.state.gmap.zoom}
-                      center={this.state.gmap.center}
-                      onChange={this.syncMapChange}
-                      yesIWantToUseGoogleMapApiInternals
-                      onGoogleApiLoaded={({ map, maps }) => this.handleMcpMapLoaded(map, maps)}
-                    ></GoogleMapReact>
-                  </div>
-                  <details>
-                    <summary>Clicked cluster details</summary>
-                    <pre>{JSON.stringify(this.state.clickedMcpCluster, null, 2)}</pre>
-                  </details>
-                </span>
-                <span className="map-and-stats">
                   <h3>WASM</h3>
                   <span className="error">{ !!this.state.loadWasmFailure ? "Wasm file failed to load :(" : ""}</span>
                   <ClusteringStats {...this.state.wasm} comparisonTime={this.state.mcp.clusterTime}></ClusteringStats>
                   <div className="gmap">
-                    <GoogleMapReact 
+                    <GoogleMapReact
                       bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
                       zoom={this.state.gmap.zoom}
                       center={this.state.gmap.center}
@@ -287,6 +268,24 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                   <details>
                     <summary>Clicked cluster details</summary>
                     <pre>{JSON.stringify(this.state.clickedWasmCluster, null, 2)}</pre>
+                  </details>
+                </span>
+                <span className="map-and-stats">
+                  <h3>Javascript (MCP)</h3>
+                  <ClusteringStats {...this.state.mcp} comparisonTime={this.state.wasm.clusterTime}></ClusteringStats>
+                  <div className="gmap">
+                    <GoogleMapReact
+                      bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
+                      zoom={this.state.gmap.zoom}
+                      center={this.state.gmap.center}
+                      onChange={this.syncMapChange}
+                      yesIWantToUseGoogleMapApiInternals
+                      onGoogleApiLoaded={({ map, maps }) => this.handleMcpMapLoaded(map, maps)}
+                    ></GoogleMapReact>
+                  </div>
+                  <details>
+                    <summary>Clicked cluster details</summary>
+                    <pre>{JSON.stringify(this.state.clickedMcpCluster, null, 2)}</pre>
                   </details>
                 </span>
               </div>
