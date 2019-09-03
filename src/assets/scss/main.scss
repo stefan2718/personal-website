@@ -1038,7 +1038,7 @@
 	}
 
 	$mini-header-width: 7em;
-	$main-content-width: 700px;
+	$main-content-width: 50em;
 	.mini-header {
 		#header {
 			width: $mini-header-width;
@@ -1112,9 +1112,10 @@
 			flex-wrap: wrap;
 
 			.map-and-stats {
-				flex-basis: $main-content-width / 2 - 4px;
-				max-width: $main-content-width / 2 - 4px;
-				margin: 2px;
+				$map-margin: 0.3em;
+				flex-basis: $main-content-width / 2 - (2 * $map-margin);
+				max-width: $main-content-width / 2 - (2 * $map-margin);
+				margin: $map-margin;
 
 				h3 {
 					text-align: center;
@@ -1126,7 +1127,7 @@
 				}
 
 				ul.stats {
-					max-width: 260px;
+					max-width: 16em;
 					margin: 0 auto 2em auto;
 					li span {
 						display: flex;
