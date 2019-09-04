@@ -10,6 +10,7 @@ class WasmMapCluster extends React.Component<IWasmCluster & { lat: number, lng: 
       center_lng: this.props.center_lng,
       bounds: this.props.bounds,
       uuid: this.props.uuid,
+      points: this.props.points.slice(0, 10),
     };
   }
 

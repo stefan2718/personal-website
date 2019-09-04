@@ -19,7 +19,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   mcpClusterer: MarkerClusterer = null;
   mcpMap: google.maps.Map;
 
-  logWasmTime = false;
+  logWasmTime = true;
 
   constructor(props: IGatsbyProps) {
     super(props);
@@ -51,7 +51,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   componentDidMount() {
     this.torontoPoints = (pointData as string[]).map(pointStr => {
       let pointObj = pointStr.split(";");
-      return { lat: Number(pointObj[0]), lng: Number(pointObj[1]), price: Number(pointObj[2]) };
+      return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
     });
     import("@stefan2718/webassembly-marker-clusterer")
       .then(lib => {

@@ -4,7 +4,7 @@
   "version": "1.0.3",
   "author": "Stefan Battiston",
   "dependencies": {
-    "@stefan2718/webassembly-marker-clusterer": "0.0.6",
+    "@stefan2718/webassembly-marker-clusterer": "file:../webassembly-marker-clusterer/pkg",
     "eslint-config-react-app": "^3.0.8",
     "gatsby": "^2.7.9",
     "gatsby-plugin-canonical-urls": "^2.0.13",

@@ -17,7 +17,7 @@ export interface IGatsbyLocation {
 export interface IPoint {
   lat: number;
   lng: number;
-  price: number;
+  price?: number;
 }
 
 export interface IGatsbyProps {
@@ -38,6 +38,7 @@ export interface IWasmCluster {
   center_lat: number;
   center_lng: number;
   bounds: IWasmBounds;
+  points: IPoint[];
 }
 
 export interface IWasmBounds {
