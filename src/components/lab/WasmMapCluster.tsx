@@ -5,21 +5,20 @@ class WasmMapCluster extends React.Component<IWasmCluster & { lat: number, lng: 
 
   getCluster: () => IWasmCluster = () => {
     return { 
-      count: this.props.count,
-      center_lat: this.props.center_lat,
-      center_lng: this.props.center_lng,
+      size: this.props.size,
+      center: this.props.center,
       bounds: this.props.bounds,
       uuid: this.props.uuid,
-      points: this.props.points.slice(0, 10),
+      markers: this.props.markers.slice(0, 10),
     };
   }
 
   render() {
-    return this.props.count !== 1 ? (
+    return this.props.size !== 1 ? (
       <div className="wasm-cluster" >
-        <img src={'/images/m' + String(this.props.count).length + '.png'} alt=''  
+        <img src={'/images/m' + String(this.props.size).length + '.png'} alt=''  
           onClick={this.props.onClick.bind(this, this.getCluster())}/>
-        <span onClick={this.props.onClick.bind(this, this.getCluster())}>{this.props.count}</span>
+        <span onClick={this.props.onClick.bind(this, this.getCluster())}>{this.props.size}</span>
       </div>
     ) : (
       <img className="wasm-marker" src='/images/marker.png' alt='' onClick={this.props.onClick.bind(this, this.getCluster())}/>

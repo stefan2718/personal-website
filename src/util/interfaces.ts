@@ -34,11 +34,10 @@ export interface IClustererStats {
 
 export interface IWasmCluster {
   uuid: string;
-  count: number;
-  center_lat: number;
-  center_lng: number;
+  size: number;
+  center: IPoint;
   bounds: IWasmBounds;
-  points: IPoint[];
+  markers: IPoint[];
 }
 
 export interface IWasmBounds {

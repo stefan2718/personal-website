@@ -60,7 +60,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
           average_center: false,
           log_time: this.logWasmTime
         });
-        this.wasmClusterer.add_points(this.torontoPoints);
+        this.wasmClusterer.addMarkers(this.torontoPoints);
         if (this.wasmMap) {
           this.updateWasmMap(this.wasmMap);
         }
@@ -81,7 +81,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       west: bounds.sw.lng,
     };
     if (this.logWasmTime) console.time("into-wasm");
-    let wasmClusters = this.wasmClusterer.cluster_points_in_bounds(wasmBounds, zoom);
+    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(wasmBounds, zoom);
     if (this.logWasmTime) console.timeEnd("out-of-wasm");
     this.setState({ wasmClusters });
     return wasmClusters;
@@ -140,7 +140,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       this.setState({ clickedMcpCluster: {
         size: cluster.getSize(),
         center: cluster.getCenter().toJSON(),
-        bounds: cluster.getBounds().toJSON(),
+        bounds: this.mcpClusterer.getExtendedBounds(new google.maps.LatLngBounds(cluster.getCenter(), cluster.getCenter())).toJSON(),
         markers: cluster.getMarkers().slice(0,10).map(m => m.getPosition().toJSON()),
       }});
     });
@@ -259,8 +259,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                           onClick={this.onWasmClusterClick}
                           {...c}
                           key={c.uuid}
-                          lat={c.center_lat}
-                          lng={c.center_lng}
+                          lat={c.center.lat}
+                          lng={c.center.lng}
                         ></WasmMapCluster>
                       )}
                     </GoogleMapReact>
