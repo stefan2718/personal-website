@@ -83,3 +83,13 @@ HELPFUL EXPLANATORY IMAGE??
 ## v0.0.6 webassembly-marker-clusterer
 
 The difference in clusters between MCP and v0.0.5 was due to the v0.0.5 averaging the center of a cluster as points are added to it, which is non-default behaviour for MCP. Before I realized this, I had thought that the difference may have been caused by the difference between Google's `getProjection()` function and the custom implementation available in the `googleprojection` [cargo package](https://crates.io/crates/googleprojection). This package is an implementation of a Web Mercator project that may have matched Google's functionality when it was written 3 years ago, but now has minor variance (0.1% difference at high zooms, much less at lower zooms), likely due to the major updates to Google Maps in 2018, when it began showing a spherical globe. 
+
+## v0.0.7 webassembly-marker-clusterer
+
+Maintaining state of previous clusters definitely slows the WASM clustering down a bit. Previously the runtime would be O(n), where n is the number of markers. After maintaining state, it's now O(n^2), because we have to check the marker-to-be-clustered against the already-clustered markers to see if it's already been added.
+
+## v0.0.8 webassembly-marker-clusterer
+
+Scratch that, the small projection errors were due [to rounding in the googleprojection-rs library](https://github.com/Mange/googleprojection-rs/issues/4). Removing the rounding gives bounds and clusters that are identical to MCP.
+
+With this release, the WASM clusterer presents virtually identical clusters, at a fraction of the compute time.

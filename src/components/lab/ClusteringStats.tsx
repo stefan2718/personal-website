@@ -1,7 +1,9 @@
 import React from "react"
-import { IClustererStats } from "../../util/interfaces";
+import { IClustererStats, IMapState } from "../../util/interfaces";
 
-class ClusteringStats extends React.Component<IClustererStats & { comparisonTime: number }> {
+const COORD_ROUND = 10000000;
+
+class ClusteringStats extends React.PureComponent<IClustererStats & { comparisonTime: number } & IMapState> {
 
   render() {
     let comparison = !this.props.comparisonTime || !this.props.clusterTime ? null : Math.round(this.props.comparisonTime / this.props.clusterTime * 100) / 100;
@@ -10,24 +12,43 @@ class ClusteringStats extends React.Component<IClustererStats & { comparisonTime
     };
 
     return (
-      <ul className="stats">
-        <li><span>
-          <span>Clusters created: </span>
-          <span className="stat-value">{this.props.totalClusters}</span>
-        </span></li>
-        <li><span>
-          <span>Speed comparison</span>
-          <span className="stat-value" style={compStyles}>{ !!comparison ? `${comparison}x` : '...waiting'}</span>
-        </span></li>
-        <li><span>
-          <span>Clustering time (ms): </span>
-          <span className="stat-value">{!!this.props.clusterTime ? this.props.clusterTime : '...waiting'}</span>
-        </span></li>
-        <li><span>
-          <span>Worst time (ms): </span>
-          <span className="stat-value">{this.props.worstTime}</span>
-        </span></li>
-      </ul>
+      <React.Fragment>
+        <ul className="stats">
+          <li><span>
+            <span>Clusters created: </span>
+            <span className="stat-value">{this.props.totalClusters}</span>
+          </span></li>
+          <li><span>
+            <span>Speed comparison</span>
+            <span className="stat-value" style={compStyles}>{ !!comparison ? `${comparison}x` : '...waiting'}</span>
+          </span></li>
+          <li><span>
+            <span>Clustering time (ms): </span>
+            <span className="stat-value">{!!this.props.clusterTime ? Math.round(this.props.clusterTime) : '...waiting'}</span>
+          </span></li>
+          <li><span>
+            <span>Worst time (ms): </span>
+            <span className="stat-value">{Math.round(this.props.worstTime)}</span>
+          </span></li>
+        </ul>
+        <details className="stats">
+          <summary>Map state</summary>
+          <ul>
+            <li><span>
+              <span>Zoom: </span>
+              <span className="stat-value">{this.props.zoom} </span>
+            </span></li>
+            <li><span>
+              <span>Center lat: </span>
+              <span className="stat-value">{Math.round(this.props.center.lat * COORD_ROUND) / COORD_ROUND}</span>
+            </span></li>
+            <li><span>
+              <span>Center lng: </span>
+              <span className="stat-value">{Math.round(this.props.center.lng * COORD_ROUND) / COORD_ROUND}</span>
+            </span></li>
+          </ul>
+        </details>
+      </React.Fragment>
     )
   }
 }
