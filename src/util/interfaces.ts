@@ -56,10 +56,13 @@ export interface IClustererState {
   syncMap: boolean;
   wasm: IClustererStats;
   mcp: IClustererStats;
-  gmap: {
-    center: { lat: number, lng: number },
-    zoom: number
-  }
+  wasmMapState: IMapState;
+  mcpMapState: IMapState;
+}
+
+export interface IMapState {
+  center: { lat: number, lng: number },
+  zoom: number
 }
 
 export interface IClickedCluster {
@@ -83,4 +86,10 @@ export interface IBlogSummary {
   dateISO: string;
   title: string;
   excerpt: string;
+}
+
+export interface ITestState {
+  minZoom: number;
+  maxZoom: number;
+  [key: string]: number; // So we can setState using bracket notation
 }

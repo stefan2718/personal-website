@@ -1106,68 +1106,98 @@
 	}
 
 	.wasm-lab {
-		main .point-comparison {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
+		main {
+			details summary {
+				cursor: pointer;
+			}
 
-			.map-and-stats {
-				$map-margin: 0.3em;
-				flex-basis: $main-content-width / 2 - (2 * $map-margin);
-				max-width: $main-content-width / 2 - (2 * $map-margin);
-				margin: $map-margin;
-
-				h3 {
-					text-align: center;
-				}
-				
-				.error {
-					color: red;
-					font-size: 1.2em;
+			.map-controls {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: wrap;
+				> * {
+					flex-basis: $main-content-width / 2;
+					// max-width: $main-content-width / 2;
 				}
 
-				ul.stats {
-					max-width: 16em;
-					margin: 0 auto 2em auto;
-					li span {
+				.test-controls {
+					.inputs {
 						display: flex;
 						flex-direction: row;
-						align-content: space-between;
-						span {
-							flex-basis: 100%;
-							&.stat-value {
-								flex-basis: 0;
+						justify-content: space-around;
+						align-items: center;
+					}
+				}
+
+				.map-sync {
+					display: flex;
+					justify-content: flex-end;
+					align-items: center;
+				}
+			}
+			.point-comparison {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: wrap;
+
+				.map-and-stats {
+					$map-margin: 0.3em;
+					flex-basis: $main-content-width / 2 - (2 * $map-margin);
+					max-width: $main-content-width / 2 - (2 * $map-margin);
+					margin: $map-margin;
+
+					h3 {
+						text-align: center;
+					}
+					
+					.error {
+						color: red;
+						font-size: 1.2em;
+					}
+
+					.stats {
+						max-width: 16em;
+						margin: 0 auto 1em auto;
+						li span {
+							display: flex;
+							flex-direction: row;
+							align-content: space-between;
+							span {
+								flex-basis: 100%;
+								&.stat-value {
+									flex-basis: 0;
+								}
 							}
 						}
 					}
-				}
-				
-				details > pre {
-					overflow: auto;
-				}
+					
+					details > pre {
+						overflow: auto;
+					}
 
-				.wasm-cluster {
-					position: relative;
-					z-index: 1;
-					* {
-						transform: translate(-50%, -50%);
-						position: absolute;
+					.wasm-cluster {
+						position: relative;
+						z-index: 1;
+						* {
+							transform: translate(-50%, -50%);
+							position: absolute;
+							cursor: pointer;
+						}
+						img {
+							z-index: 2;
+						}
+						span {
+							z-index: 3;
+							font-size: 11px;
+							font-family: Arial,sans-serif;
+							font-weight: bold;
+							color: black;
+						}
+					}
+					.wasm-marker {
+						transform: translate(-50%, -100%);
 						cursor: pointer;
 					}
-					img {
-						z-index: 2;
-					}
-					span {
-						z-index: 3;
-						font-size: 11px;
-						font-family: Arial,sans-serif;
-						font-weight: bold;
-						color: black;
-					}
-				}
-				.wasm-marker {
-					transform: translate(-50%, -100%);
-					cursor: pointer;
 				}
 			}
 		}
