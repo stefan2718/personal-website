@@ -5,7 +5,7 @@ import pointData from '../../assets/json/points.json';
 import GoogleMapReact, { ChangeEventValue, Maps, Bounds } from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
 import WasmMapCluster from '../../components/lab/WasmMapCluster';
-import { IGatsbyProps, IClustererState, IPoint, IWasmCluster } from '../../util/interfaces';
+import { IGatsbyProps, IClustererState, IPoint, ICluster } from '../../util/interfaces';
 import ClusteringStats from '../../components/lab/ClusteringStats';
 import TestControls from '../../components/lab/TestControls';
 
@@ -20,7 +20,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   mcpClusterer: MarkerClusterer = null;
   mcpMap: google.maps.Map;
 
-  logWasmTime = true;
+  logWasmTime = false;
 
   constructor(props: IGatsbyProps) {
     super(props);
@@ -29,15 +29,18 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       loadWasmFailure: false,
       loadDataFailure: false,
       wasmClusters: [],
+      mcpClusters: [],
       syncMap: true,
       wasm: {
         clusterStart: 0,
+        clusterEnd: 0,
         clusterTime: 0,
         worstTime: 0,
         totalClusters: 0
       },
       mcp: {
         clusterStart: 0,
+        clusterEnd: 0,
         clusterTime: 0,
         worstTime: 0,
         totalClusters: 0
@@ -76,7 +79,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       });
   }
 
-  wasmClusterPoints = (bounds: Bounds, zoom: number) => {
+  wasmClusterPoints = (bounds: Bounds, zoom: number): ICluster[] => {
     if (!bounds || !zoom) return;
     
     let wasmBounds = {
@@ -88,7 +91,6 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     if (this.logWasmTime) console.time("into-wasm");
     let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(wasmBounds, zoom);
     if (this.logWasmTime) console.timeEnd("out-of-wasm");
-    this.setState({ wasmClusters });
     return wasmClusters;
   }
 
@@ -133,25 +135,33 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     });
     this.mcpClusterer.addListener('clusteringend', (mcpMap: MarkerClusterer) => {
       this.setState(currentState => { 
-        let clusterTime = performance.now() - currentState.mcp.clusterStart;
+        let clusterEnd = performance.now();
+        let clusterTime = clusterEnd - currentState.mcp.clusterStart;
         let worstTime = Math.max(clusterTime, currentState.mcp.worstTime);
-        return { mcp: { 
-          ...currentState.mcp,
-          worstTime,
-          clusterTime,
-          totalClusters: mcpMap.getTotalClusters()
-        }};
+        return { 
+          mcp: { 
+            ...currentState.mcp,
+            worstTime,
+            clusterTime,
+            clusterEnd,
+            totalClusters: mcpMap.getTotalClusters()
+          },
+          mcpClusters: mcpMap.getClusters().map(cluster => this.getClusterData(cluster))
+        };
       });
     });
     this.mcpClusterer.addListener('click', (cluster: Cluster) => {
-      this.setState({ clickedMcpCluster: {
-        size: cluster.getSize(),
-        center: cluster.getCenter().toJSON(),
-        bounds: this.mcpClusterer.getExtendedBounds(new google.maps.LatLngBounds(cluster.getCenter(), cluster.getCenter())).toJSON(),
-        markers: cluster.getMarkers().slice(0,10).map(m => m.getPosition().toJSON()),
-      }});
+      this.setState({ clickedMcpCluster: this.getClusterData(cluster, true, 10)});
     });
   }
+
+  getClusterData = (cluster: Cluster, getBounds: boolean = false, sliceTo: number = -1): ICluster => ({
+    size: cluster.getSize(),
+    center: cluster.getCenter().toJSON(),
+    bounds: getBounds ? this.mcpClusterer.getExtendedBounds(new google.maps.LatLngBounds(cluster.getCenter(), cluster.getCenter())).toJSON() : null,
+    // TODO: simplify if too slow? all I need is a count?
+    markers: (sliceTo == -1 ? cluster.getMarkers() : cluster.getMarkers().slice(0,sliceTo)).map(m => m.getPosition().toJSON()),
+  });
 
   handleWasmMapLoaded = (map: google.maps.Map, maps: Maps) => {
     this.wasmMap = map;
@@ -194,29 +204,34 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
 
     let wasmClusters = this.wasmClusterPoints(bounds, zoom);
 
-    this.setState(currentState => { 
-      let clusterTime = performance.now() - currentState.wasm.clusterStart;
+    this.setState(currentState => {
+      let clusterEnd = performance.now();
+      let clusterTime = clusterEnd - currentState.wasm.clusterStart;
       let worstTime = Math.max(clusterTime, currentState.wasm.worstTime);
-      return { wasm: { 
-        ...currentState.wasm,
-        worstTime,
-        clusterTime,
-        totalClusters: wasmClusters.length
-      }};
+      return {
+        wasm: {
+          ...currentState.wasm,
+          worstTime,
+          clusterTime,
+          clusterEnd,
+          totalClusters: wasmClusters.length
+        },
+        wasmClusters,
+        wasmMapState: { center, zoom }
+      };
     });
-    this.setState({wasmMapState: { center, zoom }});
     if (this.state.syncMap) {
       this.setState({mcpMapState:  { center, zoom }});
     }
   }
 
-  onWasmClusterClick = (cluster: IWasmCluster) => {
+  onWasmClusterClick = (cluster: ICluster) => {
     this.setState({ clickedWasmCluster: cluster });
   }
 
   // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
   handleMcpMapChange = ({ center, zoom, bounds, marginBounds, size }: ChangeEventValue) => {
-    this.setState({mcpMapState:  { center, zoom }});
+    this.setState({mcpMapState: { center, zoom }});
     if (this.state.syncMap) {
       this.setState({wasmMapState: { center, zoom }});
     }
@@ -242,7 +257,19 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
             </p>
             <main>
               <div className="map-controls">
-                <TestControls></TestControls>
+                <TestControls 
+                  setParentState={this.setState.bind(this)}
+                  wasmState={{
+                    clusterTime: this.state.wasm.clusterTime,
+                    clusterEnd: this.state.wasm.clusterEnd,
+                    clusters: this.state.wasmClusters,
+                  }}
+                  mcpState={{
+                    clusterTime: this.state.mcp.clusterTime,
+                    clusterEnd: this.state.mcp.clusterEnd,
+                    clusters: this.state.mcpClusters,
+                  }}
+                ></TestControls>
                 <div className="map-sync">
                   <input id="syncMap" name="syncMap" type="checkbox" checked={this.state.syncMap} onChange={this.changeSyncMap}/>
                   <label htmlFor="syncMap">Synchronize map state</label>

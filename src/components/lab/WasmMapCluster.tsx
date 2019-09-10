@@ -1,9 +1,9 @@
 import React from "react"
-import { IWasmCluster } from "../../util/interfaces";
+import { ICluster } from "../../util/interfaces";
 
-class WasmMapCluster extends React.Component<IWasmCluster & { lat: number, lng: number, onClick: (cluster: IWasmCluster) => void }> {
+class WasmMapCluster extends React.Component<ICluster & { lat: number, lng: number, onClick: (cluster: ICluster) => void }> {
 
-  getCluster: () => IWasmCluster = () => {
+  getCluster: () => ICluster = () => {
     return { 
       size: this.props.size,
       center: this.props.center,

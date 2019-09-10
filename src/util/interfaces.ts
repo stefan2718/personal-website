@@ -27,16 +27,17 @@ export interface IGatsbyProps {
 
 export interface IClustererStats {
   clusterStart: number;
+  clusterEnd: number;
   clusterTime: number;
   worstTime: number;
   totalClusters: number;
 }
 
-export interface IWasmCluster {
-  uuid: string;
+export interface ICluster {
+  uuid?: string;
   size: number;
   center: IPoint;
-  bounds: IWasmBounds;
+  bounds?: IWasmBounds;
   markers: IPoint[];
 }
 
@@ -50,9 +51,10 @@ export interface IWasmBounds {
 export interface IClustererState {
   loadWasmFailure: boolean;
   loadDataFailure: boolean;
-  wasmClusters: IWasmCluster[],
-  clickedMcpCluster?: IClickedCluster;
-  clickedWasmCluster?: IWasmCluster;
+  wasmClusters: ICluster[],
+  mcpClusters: ICluster[],
+  clickedMcpCluster?: ICluster;
+  clickedWasmCluster?: ICluster;
   syncMap: boolean;
   wasm: IClustererStats;
   mcp: IClustererStats;
@@ -63,13 +65,6 @@ export interface IClustererState {
 export interface IMapState {
   center: { lat: number, lng: number },
   zoom: number
-}
-
-export interface IClickedCluster {
-  size: number;
-  center: google.maps.LatLngLiteral;
-  bounds?: google.maps.LatLngBoundsLiteral;
-  markers: google.maps.LatLngLiteral[];
 }
 
 export interface ILabTile {
@@ -88,8 +83,20 @@ export interface IBlogSummary {
   excerpt: string;
 }
 
-export interface ITestState {
+export interface ITestControlsState {
   minZoom: number;
   maxZoom: number;
   [key: string]: number; // So we can setState using bracket notation
+}
+
+export interface IMapTestState {
+  clusterTime: number;
+  clusterEnd: number;
+  clusters: ICluster[];
+}
+
+export interface ITestControlsProps {
+  setParentState: any;
+  wasmState: IMapTestState;
+  mcpState: IMapTestState;
 }
