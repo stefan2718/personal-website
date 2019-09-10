@@ -1,7 +1,7 @@
 import React from "react"
 import { ITestControlsState, IMapTestState, ITestControlsProps } from "../../util/interfaces";
-import { Subject, defer, from, concat, empty, of, Observable } from "rxjs";
-import { take, concatMap, map, switchMap, delay, concatAll } from 'rxjs/operators';
+import { Subject, defer, from, concat, } from "rxjs";
+import { take, concatMap, map, delay, } from 'rxjs/operators';
 
 const BOUNDS_ALL_POINTS = Object.freeze({ south: 43.3413947, west: -79.94704530000001, north: 43.9865649, east: -78.8772558 });
 const INTIAL_CENTER = Object.freeze({ center: { lat: 43.6358644, lng: -79.4673894 }, zoom: 8 });
