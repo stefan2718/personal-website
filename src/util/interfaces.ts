@@ -17,7 +17,6 @@ export interface IGatsbyLocation {
 export interface IPoint {
   lat: number;
   lng: number;
-  price?: number;
 }
 
 export interface IGatsbyProps {
@@ -31,17 +30,18 @@ export interface IClustererStats {
   clusterTime: number;
   worstTime: number;
   totalClusters: number;
+  totalMarkers: number;
 }
 
 export interface ICluster {
   uuid?: string;
   size: number;
   center: IPoint;
-  bounds?: IWasmBounds;
+  bounds?: IBounds;
   markers: IPoint[];
 }
 
-export interface IWasmBounds {
+export interface IBounds {
   north: number;
   east: number;
   south: number;
@@ -63,7 +63,8 @@ export interface IClustererState {
 }
 
 export interface IMapState {
-  center: { lat: number, lng: number },
+  center: IPoint,
+  bounds: IBounds,
   zoom: number
 }
 
@@ -86,7 +87,8 @@ export interface IBlogSummary {
 export interface ITestControlsState {
   minZoom: number;
   maxZoom: number;
-  [key: string]: number; // So we can setState using bracket notation
+  running: boolean;
+  [key: string]: any; // So we can setState using bracket notation
 }
 
 export interface IMapTestState {
@@ -95,8 +97,38 @@ export interface IMapTestState {
   clusters: ICluster[];
 }
 
+export interface IKeyedMapTestState {
+  key: "mcp" | "wasm";
+  state: IMapTestState;
+}
+
 export interface ITestControlsProps {
   setParentState: any;
   wasmState: IMapTestState;
   mcpState: IMapTestState;
+  bounds: IBounds;
+}
+
+export enum Direction {
+  north, east, south, west,
+}
+
+export interface ITestResults {
+  mapState: IMapState;
+  spiralState: ISpiralState;
+  mcpResults: ITestSummary[][];
+  wasmResults: ITestSummary[][];
+}
+
+export interface ITestSummary {
+  clusterCount: number;
+  markerCount: number;
+  clusterTime: number;
+}
+
+export interface ISpiralState {
+  stepsLeft: number;
+  totalSteps: number;
+  direction: Direction;
+  isFirstOfTwoDirections: boolean;
 }

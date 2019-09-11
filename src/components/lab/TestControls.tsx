@@ -1,22 +1,37 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps } from "../../util/interfaces";
-import { Subject, defer, from, concat, } from "rxjs";
-import { take, concatMap, map, delay, } from 'rxjs/operators';
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState } from "../../util/interfaces";
+import { Subject, defer, concat, Observable, BehaviorSubject, } from "rxjs";
+import { take, concatMap, map, delay, reduce, filter, } from 'rxjs/operators';
+import { INTIAL_MAP_STATE } from "../../util/constants";
 
-const BOUNDS_ALL_POINTS = Object.freeze({ south: 43.3413947, west: -79.94704530000001, north: 43.9865649, east: -78.8772558 });
-const INTIAL_CENTER = Object.freeze({ center: { lat: 43.6358644, lng: -79.4673894 }, zoom: 8 });
-const COOLDOWN_WAIT_TIME = 1000;
+const COOLDOWN_WAIT_TIME = 300;
+const INITIAL_SPIRAL_STATE = Object.freeze({
+  stepsLeft: 1,
+  totalSteps: 1,
+  direction: Direction.south,
+  isFirstOfTwoDirections: true,
+});
+const TOTAL_MARKERS = 10000;
+
+const getTestInitialState = (zoomLevels: number): ITestResults => ({
+  mapState: Object.assign({}, INTIAL_MAP_STATE),
+  spiralState: Object.assign({}, INITIAL_SPIRAL_STATE),
+  mcpResults: Array(zoomLevels).fill(0).map(() => []),
+  wasmResults: Array(zoomLevels).fill(0).map(() => []),
+});
 
 class TestControls extends React.Component<ITestControlsProps, ITestControlsState> {
 
   wasmState: Subject<IMapTestState> = new Subject();
   mcpState: Subject<IMapTestState> = new Subject();
+  centerMapHere: BehaviorSubject<ITestResults> = new BehaviorSubject(getTestInitialState(0));
 
   constructor(props: ITestControlsProps) {
     super(props);
     this.state = {
       minZoom: 7,
       maxZoom: 14,
+      running: false,
     }
   }
 
@@ -30,81 +45,136 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   }
 
   onZoomChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event && event.target) {
+    if (event && event.target && ["minZoom", "maxZoom"].includes(event.target.id)) {
       let value = Number(event.target.value);
       value = value > 19 ? 19 : value < 1 ? 1 : value;
       this.setState({ [event.target.id]: value });
+    }
+  }
+
+  summarizeTestResults = (testState: IMapTestState): ITestSummary => {
+    return {
+      clusterTime: testState.clusterTime,
+      clusterCount: testState.clusters.length,
+      markerCount: testState.clusters.reduce((acc, curr) => acc + curr.markers.length, 0)
     }
   }
   
   startTest = () => {
     let maxZoom = Math.max(this.state.maxZoom, this.state.minZoom);
     let minZoom = Math.min(this.state.maxZoom, this.state.minZoom);
-    let zooms = Array(maxZoom - minZoom + 1).fill(0).map((_, i) => minZoom + i);
     this.props.setParentState({syncMap: false});
+    this.setState({ running: true });
 
-    let center = Object.assign({}, INTIAL_CENTER);
-    console.log(center);
-    
+    let initialTestState = getTestInitialState(maxZoom - minZoom + 1);
+    initialTestState.mapState.zoom = minZoom;
+    this.centerMapHere.next(initialTestState);
 
-    from(zooms).pipe(
-      concatMap(
-        (zoom) => {
-          return concat(
-            defer(() => {
-              console.log("wasm zoom ", zoom);
-              this.props.setParentState((currentState: any) => {
-                return {
-                  ...currentState,
-                  wasmMapState: {
-                    zoom, center: INTIAL_CENTER.center
-                  }
-                };
-              });
-              return this.wasmState.pipe(
-                take(1),
-                delay(COOLDOWN_WAIT_TIME),
-                map(state => {
-                  console.log("wasm", state);
-                  return zoom;
-                }),
-              );
-            }),
-            defer(() => {
-              console.log("mcp zoom ", zoom);
-              this.props.setParentState((currentState: any) => {
-                return {
-                  ...currentState,
-                  mcpMapState: {
-                    zoom, center: INTIAL_CENTER.center
-                  }
-                };
-              });
-              return this.mcpState.pipe(
-                take(1),
-                delay(COOLDOWN_WAIT_TIME),
-                map(state => {
-                  console.log("mcp", state);
-                  return zoom;
-                }),
-              );
-            })
-          );
-        },
-      )
-    ).subscribe(zoom => console.log("done ", zoom));
+    this.centerMapHere.pipe(
+      concatMap((testState) => 
+        concat(
+          this.setMapStateAndWaitForResults("wasm", this.wasmState, testState.mapState),
+          this.setMapStateAndWaitForResults("mcp", this.mcpState, testState.mapState)
+        ).pipe(
+          reduce((acc, curr) => {
+            if (curr.key === "mcp") {
+              acc.mcpResults[testState.mapState.zoom - minZoom].push(this.summarizeTestResults(curr.state));
+            } else {
+              acc.wasmResults[testState.mapState.zoom - minZoom].push(this.summarizeTestResults(curr.state));
+            }
+            return acc;
+          }, testState)
+        )
+      ),
+      filter(testState => {
+        let wasmZoomResults = testState.wasmResults[testState.mapState.zoom - minZoom];
+        let mcpZoomResults = testState.mcpResults[testState.mapState.zoom - minZoom];
+        let allMarkersClustered = 
+          wasmZoomResults[wasmZoomResults.length - 1].markerCount >= TOTAL_MARKERS &&
+          mcpZoomResults[mcpZoomResults.length - 1].markerCount >= TOTAL_MARKERS;
+        console.log("mcp", mcpZoomResults[mcpZoomResults.length - 1].markerCount, "wasm", wasmZoomResults[wasmZoomResults.length - 1].markerCount);
 
+        if (testState.mapState.zoom === maxZoom && allMarkersClustered) {
+          return true;
+        } 
 
-    // For each zoom:
-    // move map1
-    // wait for clustering time, and marker count
-    // wait a bit more
-    // move map1
-    // wait for clustering time, and marker count
-    // wait a bit more
-    // check if all markers clustered,
-    //   if true, choose new zoom, return to center
-    //   if false, choose new center
+        if (allMarkersClustered) {
+          testState.mapState.zoom++;
+          testState.mapState.center = Object.assign({}, INTIAL_MAP_STATE.center);
+          testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
+        } else {
+          testState.mapState.center = this.calculateNextCenter(testState.mapState.center, this.props.bounds, testState.spiralState.direction);
+          testState.spiralState = this.getNextSpiralStep(testState.spiralState);
+        }
+        this.centerMapHere.next(testState);
+        return false;
+      }),
+      take(1)
+    ).subscribe(
+      result => console.log("done ", result),
+      err => console.error("Uh-oh!", err),
+      () => {
+        this.props.setParentState({syncMap: true});
+        this.setState({ running: false });
+      }
+    );
+  }
+
+  setMapStateAndWaitForResults = (key: "mcp" | "wasm", resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
+    return defer(() => {
+      this.props.setParentState((currentState: any) => {
+        return {
+          ...currentState,
+          [`${key}MapState`]: mapState
+        };
+      });
+      return resultSubject.pipe(
+        map(state => ({ key, state })),
+        take(1),
+        delay(COOLDOWN_WAIT_TIME),
+      );
+    });
+  }
+
+  getNextSpiralStep = (lastStep: ISpiralState): ISpiralState => {
+    let noStepsLeft = (lastStep.stepsLeft - 1) === 0;
+    return {
+      stepsLeft: !noStepsLeft ? lastStep.stepsLeft - 1 : lastStep.isFirstOfTwoDirections ? lastStep.totalSteps : lastStep.totalSteps + 1,
+      direction: noStepsLeft ? this.incrementDirection(lastStep.direction) : lastStep.direction,
+      totalSteps: noStepsLeft && !lastStep.isFirstOfTwoDirections ? lastStep.totalSteps + 1 : lastStep.totalSteps,
+      isFirstOfTwoDirections: noStepsLeft ? !lastStep.isFirstOfTwoDirections : lastStep.isFirstOfTwoDirections,
+    };
+  }
+
+  incrementDirection = (direction: Direction): Direction => {
+    return (++direction % 4);
+  }
+
+  calculateNextCenter = (center: IPoint, bounds: IBounds, direction: Direction): IPoint => {
+    switch (direction) {
+      case Direction.north:
+        return {
+          lat: bounds.north,
+          lng: center.lng
+        };
+      case Direction.east:
+        return {
+          lat: center.lat,
+          lng: bounds.east
+        };
+      case Direction.south:
+        return {
+          lat: bounds.south,
+          lng: center.lng
+        };
+      case Direction.west:
+        return {
+          lat: center.lat,
+          lng: bounds.west
+        };
+      default: 
+        console.error("Unknown 'Direction':", direction);
+    }
   }
 
   render() {
@@ -118,7 +188,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           <label htmlFor="maxZoom">Max Zoom<br/>
             <input id="maxZoom" type="number" min="3" max="19" value={this.state.maxZoom} onChange={this.onZoomChange}/>
           </label>
-          <button className="button" onClick={this.startTest}>Start</button>
+          <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
         </div>
       </div>
     )

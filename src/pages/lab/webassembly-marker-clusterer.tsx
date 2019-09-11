@@ -5,9 +5,10 @@ import pointData from '../../assets/json/points.json';
 import GoogleMapReact, { ChangeEventValue, Maps, Bounds } from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
 import WasmMapCluster from '../../components/lab/WasmMapCluster';
-import { IGatsbyProps, IClustererState, IPoint, ICluster } from '../../util/interfaces';
+import { IGatsbyProps, IClustererState, IPoint, ICluster, IBounds } from '../../util/interfaces';
 import ClusteringStats from '../../components/lab/ClusteringStats';
 import TestControls from '../../components/lab/TestControls';
+import { INTIAL_MAP_STATE } from '../../util/constants';
 
 class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   torontoPoints: IPoint[] = [];
@@ -36,23 +37,19 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
         clusterEnd: 0,
         clusterTime: 0,
         worstTime: 0,
-        totalClusters: 0
+        totalClusters: 0,
+        totalMarkers: 0,
       },
       mcp: {
         clusterStart: 0,
         clusterEnd: 0,
         clusterTime: 0,
         worstTime: 0,
-        totalClusters: 0
+        totalClusters: 0,
+        totalMarkers: 0,
       },
-      wasmMapState: {
-        center: { lat: 43.6358644, lng: -79.4673894 },
-        zoom: 8
-      },
-      mcpMapState: {
-        center: { lat: 43.6358644, lng: -79.4673894 },
-        zoom: 8
-      },
+      wasmMapState: INTIAL_MAP_STATE,
+      mcpMapState: INTIAL_MAP_STATE,
     };
   }
 
@@ -79,17 +76,9 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       });
   }
 
-  wasmClusterPoints = (bounds: Bounds, zoom: number): ICluster[] => {
-    if (!bounds || !zoom) return;
-    
-    let wasmBounds = {
-      north: bounds.ne.lat,
-      east: bounds.ne.lng,
-      south: bounds.sw.lat,
-      west: bounds.sw.lng,
-    };
+  wasmClusterPoints = (bounds: IBounds, zoom: number): ICluster[] => {
     if (this.logWasmTime) console.time("into-wasm");
-    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(wasmBounds, zoom);
+    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(bounds, zoom);
     if (this.logWasmTime) console.timeEnd("out-of-wasm");
     return wasmClusters;
   }
@@ -98,6 +87,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     if (event && event.target && event.target.checked) {
       let mapState = {
         center: { lat: this.mcpMap.getCenter().lat(), lng: this.mcpMap.getCenter().lng() },
+        bounds: this.mcpMap.getBounds().toJSON(),
         zoom: this.mcpMap.getZoom()
       };
       this.setState({ 
@@ -144,6 +134,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
             worstTime,
             clusterTime,
             clusterEnd,
+            totalMarkers: mcpMap.getClusters().reduce((acc, curr) => acc + curr.getSize(), 0),
             totalClusters: mcpMap.getTotalClusters()
           },
           mcpClusters: mcpMap.getClusters().map(cluster => this.getClusterData(cluster))
@@ -172,25 +163,38 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     this.handleWasmMapChange({ 
       center: { lat: map.getCenter().lat(), lng: map.getCenter().lng() },
       zoom: map.getZoom(),
-      bounds: {
-        ne: {
-          lat: map.getBounds().getNorthEast().lat(),
-          lng: map.getBounds().getNorthEast().lng(),
-        },
-        sw: {
-          lat: map.getBounds().getSouthWest().lat(),
-          lng: map.getBounds().getSouthWest().lng(),
-        },
-        nw: {
-          lat: map.getBounds().getNorthEast().lat(),
-          lng: map.getBounds().getSouthWest().lng(),
-        },
-        se: {
-          lat: map.getBounds().getSouthWest().lat(),
-          lng: map.getBounds().getNorthEast().lng(),
-        },
-      }
+      bounds: this.iBoundsToBounds(map.getBounds().toJSON())
     });
+  }
+
+  iBoundsToBounds = (iBounds: IBounds): Bounds => {
+    return {
+      ne: {
+        lat: iBounds.north,
+        lng: iBounds.east,
+      },
+      sw: {
+        lat: iBounds.south,
+        lng: iBounds.west,
+      },
+      nw: {
+        lat: iBounds.north,
+        lng: iBounds.west,
+      },
+      se: {
+        lat: iBounds.south,
+        lng: iBounds.east,
+      },
+    }
+  }
+
+  boundsToIBounds = (bounds: Bounds): IBounds => {
+    return {
+      north: bounds.ne.lat,
+      east:  bounds.ne.lng,
+      south: bounds.sw.lat,
+      west:  bounds.sw.lng,
+    }
   }
 
   handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }: Partial<ChangeEventValue>) => {
@@ -202,7 +206,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       clusterTime: 0,
     }}));
 
-    let wasmClusters = this.wasmClusterPoints(bounds, zoom);
+    let wasmClusters = this.wasmClusterPoints(this.boundsToIBounds(bounds), zoom);
 
     this.setState(currentState => {
       let clusterEnd = performance.now();
@@ -214,14 +218,15 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
           worstTime,
           clusterTime,
           clusterEnd,
+          totalMarkers: wasmClusters.reduce((acc, curr) => acc + curr.markers.length, 0),
           totalClusters: wasmClusters.length
         },
         wasmClusters,
-        wasmMapState: { center, zoom }
+        wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }
       };
     });
     if (this.state.syncMap) {
-      this.setState({mcpMapState:  { center, zoom }});
+      this.setState({mcpMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
     }
   }
 
@@ -231,9 +236,9 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
 
   // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
   handleMcpMapChange = ({ center, zoom, bounds, marginBounds, size }: ChangeEventValue) => {
-    this.setState({mcpMapState: { center, zoom }});
+    this.setState({mcpMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
     if (this.state.syncMap) {
-      this.setState({wasmMapState: { center, zoom }});
+      this.setState({wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
     }
   }
 
@@ -259,6 +264,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
               <div className="map-controls">
                 <TestControls 
                   setParentState={this.setState.bind(this)}
+                  bounds={this.state.mcpMapState.bounds}
                   wasmState={{
                     clusterTime: this.state.wasm.clusterTime,
                     clusterEnd: this.state.wasm.clusterEnd,

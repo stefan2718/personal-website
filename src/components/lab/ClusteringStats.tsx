@@ -19,6 +19,10 @@ class ClusteringStats extends React.PureComponent<IClustererStats & { comparison
             <span className="stat-value">{this.props.totalClusters}</span>
           </span></li>
           <li><span>
+            <span>Markers clustered: </span>
+            <span className="stat-value">{this.props.totalMarkers}</span>
+          </span></li>
+          <li><span>
             <span>Speed comparison</span>
             <span className="stat-value" style={compStyles}>{ !!comparison ? `${comparison}x` : '...waiting'}</span>
           </span></li>
