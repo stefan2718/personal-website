@@ -71,7 +71,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.centerMapHere.next(initialTestState);
 
     this.centerMapHere.pipe(
-      concatMap((testState) => 
+      concatMap((testState) =>
         concat(
           this.setMapStateAndWaitForResults("wasm", this.wasmState, testState.mapState),
           this.setMapStateAndWaitForResults("mcp", this.mcpState, testState.mapState)
@@ -89,14 +89,13 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       filter(testState => {
         let wasmZoomResults = testState.wasmResults[testState.mapState.zoom - minZoom];
         let mcpZoomResults = testState.mcpResults[testState.mapState.zoom - minZoom];
-        let allMarkersClustered = 
+        let allMarkersClustered =
           wasmZoomResults[wasmZoomResults.length - 1].markerCount >= TOTAL_MARKERS &&
           mcpZoomResults[mcpZoomResults.length - 1].markerCount >= TOTAL_MARKERS;
-        console.log("mcp", mcpZoomResults[mcpZoomResults.length - 1].markerCount, "wasm", wasmZoomResults[wasmZoomResults.length - 1].markerCount);
 
         if (testState.mapState.zoom === maxZoom && allMarkersClustered) {
           return true;
-        } 
+        }
 
         if (allMarkersClustered) {
           testState.mapState.zoom++;
@@ -111,13 +110,61 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       }),
       take(1)
     ).subscribe(
-      result => console.log("done ", result),
+      result => this.resultsToData(result),
       err => console.error("Uh-oh!", err),
       () => {
         this.props.setParentState({syncMap: true});
         this.setState({ running: false });
       }
     );
+  }
+
+  resultsToData = (results: ITestResults) => {
+    this.testResultsToData("wasm", results.wasmResults);
+    this.testResultsToData("mcp", results.mcpResults);
+  }
+
+  testResultsToData = (type: string, results: ITestSummary[][]) => {
+    let totalResults = results.reduce((accResults, zoomResults) => {
+      let transposedArray = zoomResults.reduce((accTime, time) => {
+        accTime.newMarkersClustered.push(accTime.newMarkersClustered.length === 0 ? time.markerCount : 
+          time.markerCount - accTime.markerCount[accTime.markerCount.length - 1]);
+        accTime.markerCount.push(time.markerCount);
+        accTime.clusterTime.push(time.clusterTime);
+        return accTime;
+      }, { clusterTime: [], markerCount: [], newMarkersClustered: []});
+      accResults.clusterTime.push(...transposedArray.clusterTime);
+      accResults.newMarkersClustered.push(...transposedArray.newMarkersClustered);
+      return accResults;
+    }, {clusterTime: [], newMarkersClustered: []});
+    console.log(type + "\n" +
+      totalResults.clusterTime.join(", ") + "\n" +
+      totalResults.newMarkersClustered.join(", ") + "\n"
+    );
+  }
+
+  resultsToCsv = (results: ITestResults) => {
+    this.testResultsToCsv("wasm", results.wasmResults);
+    this.testResultsToCsv("mcp", results.mcpResults);
+  }
+
+  testResultsToCsv = (type: string, results: ITestSummary[][]) => {
+    let str = type + "\n" + results.reduce((accResults, zoomResults) => {
+      let transposedArray = zoomResults.reduce((accTime, time) => {
+        accTime.newMarkersClustered.push(accTime.newMarkersClustered.length === 0 ? time.markerCount : 
+          time.markerCount - accTime.markerCount[accTime.markerCount.length - 1]);
+        accTime.clusterCount.push(time.clusterCount);
+        accTime.markerCount.push(time.markerCount);
+        accTime.clusterTime.push(time.clusterTime);
+        return accTime;
+      }, { clusterTime: [], clusterCount: [], markerCount: [], newMarkersClustered: []});
+      return accResults + "\n" + 
+        transposedArray.clusterTime.join(", ") + "\n" +
+        transposedArray.clusterCount.join(", ") + "\n" +
+        transposedArray.markerCount.join(", ") + "\n" + 
+        transposedArray.newMarkersClustered.join(", ") + "\n";
+    }, "");
+    console.log(str);
   }
 
   setMapStateAndWaitForResults = (key: "mcp" | "wasm", resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
@@ -172,7 +219,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           lat: center.lat,
           lng: bounds.west
         };
-      default: 
+      default:
         console.error("Unknown 'Direction':", direction);
     }
   }
