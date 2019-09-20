@@ -1,11 +1,12 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState } from "../../util/interfaces";
-import { Subject, defer, concat, Observable, BehaviorSubject, } from "rxjs";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType } from "../../util/interfaces";
+import { Subject, defer, concat, Observable } from "rxjs";
 import { take, concatMap, map, delay, reduce, filter, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
 
 const COOLDOWN_WAIT_TIME = 300;
-const INITIAL_SPIRAL_STATE = Object.freeze({
+const INITIAL_SPIRAL_STATE: ISpiralState = Object.freeze({
+  totalPansPerZoom: 1,
   stepsLeft: 1,
   totalSteps: 1,
   direction: Direction.south,
@@ -13,8 +14,10 @@ const INITIAL_SPIRAL_STATE = Object.freeze({
 });
 const TOTAL_MARKERS = 10000;
 
-const getTestInitialState = (zoomLevels: number): ITestResults => ({
-  mapState: Object.assign({}, INTIAL_MAP_STATE),
+const getTestInitialState = (zoomLevels: number, initialMapState: IMapState = INTIAL_MAP_STATE): ITestResults => ({
+  currentIndex: 0,
+  runCount: 1,
+  mapState: Object.assign({}, initialMapState),
   spiralState: Object.assign({}, INITIAL_SPIRAL_STATE),
   mcpResults: Array(zoomLevels).fill(0).map(() => []),
   wasmResults: Array(zoomLevels).fill(0).map(() => []),
@@ -24,13 +27,15 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
 
   wasmState: Subject<IMapTestState> = new Subject();
   mcpState: Subject<IMapTestState> = new Subject();
-  centerMapHere: BehaviorSubject<ITestResults> = new BehaviorSubject(getTestInitialState(0));
+  centerMapHere: Subject<ITestResults> = new Subject();
 
   constructor(props: ITestControlsProps) {
     super(props);
     this.state = {
       minZoom: 7,
       maxZoom: 14,
+      maxPans: 20,
+      runs: 1,
       running: false,
     }
   }
@@ -41,6 +46,14 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     }
     if (this.props.mcpState.clusterEnd != prevProps.mcpState.clusterEnd) {
       this.mcpState.next(this.props.mcpState);
+    }
+  }
+
+  onRepeatChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event && event.target && ["runs", "maxPans"].includes(event.target.id)) {
+      let value = Number(event.target.value);
+      value = value > 100 ? 100 : value < 1 ? 1 : value;
+      this.setState({ [event.target.id]: value });
     }
   }
 
@@ -63,12 +76,12 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   startTest = () => {
     let maxZoom = Math.max(this.state.maxZoom, this.state.minZoom);
     let minZoom = Math.min(this.state.maxZoom, this.state.minZoom);
-    this.props.setParentState({syncMap: false});
+    let zoomsPerRun = maxZoom - minZoom + 1;
+    this.props.setParentState({syncMap: false, testIsRunning: true});
     this.setState({ running: true });
 
-    let initialTestState = getTestInitialState(maxZoom - minZoom + 1);
+    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, this.props.getMapState("mcp"));
     initialTestState.mapState.zoom = minZoom;
-    this.centerMapHere.next(initialTestState);
 
     this.centerMapHere.pipe(
       concatMap((testState) =>
@@ -78,26 +91,34 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
         ).pipe(
           reduce((acc, curr) => {
             if (curr.key === "mcp") {
-              acc.mcpResults[testState.mapState.zoom - minZoom].push(this.summarizeTestResults(curr.state));
+              acc.mcpResults[testState.currentIndex].push(this.summarizeTestResults(curr.state));
             } else {
-              acc.wasmResults[testState.mapState.zoom - minZoom].push(this.summarizeTestResults(curr.state));
+              acc.wasmResults[testState.currentIndex].push(this.summarizeTestResults(curr.state));
             }
             return acc;
           }, testState)
         )
       ),
       filter(testState => {
-        let wasmZoomResults = testState.wasmResults[testState.mapState.zoom - minZoom];
-        let mcpZoomResults = testState.mcpResults[testState.mapState.zoom - minZoom];
+        let wasmZoomResults = testState.wasmResults[testState.currentIndex];
+        let mcpZoomResults = testState.mcpResults[testState.currentIndex];
         let allMarkersClustered =
           wasmZoomResults[wasmZoomResults.length - 1].markerCount >= TOTAL_MARKERS &&
           mcpZoomResults[mcpZoomResults.length - 1].markerCount >= TOTAL_MARKERS;
 
-        if (testState.mapState.zoom === maxZoom && allMarkersClustered) {
-          return true;
+        let doneAtZoomLevel = allMarkersClustered || (testState.spiralState.totalPansPerZoom === this.state.maxPans);
+
+        if (testState.mapState.zoom === maxZoom && doneAtZoomLevel) {
+          if (testState.runCount === this.state.runs) {
+            return true;
+          } else {
+            testState.runCount++;
+            testState.mapState.zoom = minZoom - 1;
+          }
         }
 
-        if (allMarkersClustered) {
+        if (doneAtZoomLevel) {
+          testState.currentIndex++;
           testState.mapState.zoom++;
           testState.mapState.center = Object.assign({}, INTIAL_MAP_STATE.center);
           testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
@@ -113,10 +134,12 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       result => this.resultsToData(result),
       err => console.error("Uh-oh!", err),
       () => {
-        this.props.setParentState({syncMap: true});
+        this.props.setParentState({syncMap: true, testIsRunning: false});
         this.setState({ running: false });
       }
     );
+
+    this.centerMapHere.next(initialTestState);
   }
 
   resultsToData = (results: ITestResults) => {
@@ -124,7 +147,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.testResultsToData("mcp", results.mcpResults);
   }
 
-  testResultsToData = (type: string, results: ITestSummary[][]) => {
+  testResultsToData = (type: MapType, results: ITestSummary[][]) => {
     let totalResults = results.reduce((accResults, zoomResults) => {
       let transposedArray = zoomResults.reduce((accTime, time) => {
         accTime.newMarkersClustered.push(accTime.newMarkersClustered.length === 0 ? time.markerCount : 
@@ -138,9 +161,13 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       return accResults;
     }, {clusterTime: [], newMarkersClustered: []});
     console.log(type + "\n" +
-      totalResults.clusterTime.join(", ") + "\n" +
+      totalResults.clusterTime.map(c => this.round(c)).join(", ") + "\n" +
       totalResults.newMarkersClustered.join(", ") + "\n"
     );
+  }
+
+  round = (num: number): number => {
+    return Math.round(num * 10000) / 10000;
   }
 
   resultsToCsv = (results: ITestResults) => {
@@ -148,7 +175,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.testResultsToCsv("mcp", results.mcpResults);
   }
 
-  testResultsToCsv = (type: string, results: ITestSummary[][]) => {
+  testResultsToCsv = (type: MapType, results: ITestSummary[][]) => {
     let str = type + "\n" + results.reduce((accResults, zoomResults) => {
       let transposedArray = zoomResults.reduce((accTime, time) => {
         accTime.newMarkersClustered.push(accTime.newMarkersClustered.length === 0 ? time.markerCount : 
@@ -167,7 +194,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     console.log(str);
   }
 
-  setMapStateAndWaitForResults = (key: "mcp" | "wasm", resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
+  setMapStateAndWaitForResults = (key: MapType, resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
     return defer(() => {
       this.props.setParentState((currentState: any) => {
         return {
@@ -186,6 +213,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   getNextSpiralStep = (lastStep: ISpiralState): ISpiralState => {
     let noStepsLeft = (lastStep.stepsLeft - 1) === 0;
     return {
+      totalPansPerZoom: lastStep.totalPansPerZoom + 1,
       stepsLeft: !noStepsLeft ? lastStep.stepsLeft - 1 : lastStep.isFirstOfTwoDirections ? lastStep.totalSteps : lastStep.totalSteps + 1,
       direction: noStepsLeft ? this.incrementDirection(lastStep.direction) : lastStep.direction,
       totalSteps: noStepsLeft && !lastStep.isFirstOfTwoDirections ? lastStep.totalSteps + 1 : lastStep.totalSteps,
@@ -229,11 +257,17 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       <div className="test-controls">
         <h4>Automated Performance Test</h4>
         <div className="inputs">
-          <label htmlFor="minZoom">Min Zoom<br/>
+          <label htmlFor="minZoom">Min zoom<br/>
             <input id="minZoom" type="number" min="3" max="19" value={this.state.minZoom} onChange={this.onZoomChange}/>
           </label>
-          <label htmlFor="maxZoom">Max Zoom<br/>
+          <label htmlFor="maxZoom">Max zoom<br/>
             <input id="maxZoom" type="number" min="3" max="19" value={this.state.maxZoom} onChange={this.onZoomChange}/>
+          </label>
+          <label htmlFor="runs">Runs<br/>
+            <input id="runs" type="number" min="1" max="100" value={this.state.runs} onChange={this.onRepeatChange}/>
+          </label>
+          <label htmlFor="maxPans">Max pans per zoom<br/>
+            <input id="maxPans" type="number" min="1" max="100" value={this.state.maxPans} onChange={this.onRepeatChange}/>
           </label>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
         </div>

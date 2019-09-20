@@ -60,6 +60,7 @@ export interface IClustererState {
   mcp: IClustererStats;
   wasmMapState: IMapState;
   mcpMapState: IMapState;
+  testIsRunning: boolean;
 }
 
 export interface IMapState {
@@ -87,6 +88,8 @@ export interface IBlogSummary {
 export interface ITestControlsState {
   minZoom: number;
   maxZoom: number;
+  maxPans: number;
+  runs: number;
   running: boolean;
   [key: string]: any; // So we can setState using bracket notation
 }
@@ -97,12 +100,15 @@ export interface IMapTestState {
   clusters: ICluster[];
 }
 
+export type MapType = "mcp" | "wasm";
+
 export interface IKeyedMapTestState {
-  key: "mcp" | "wasm";
+  key: MapType;
   state: IMapTestState;
 }
 
 export interface ITestControlsProps {
+  getMapState: (type: MapType) => IMapState;
   setParentState: any;
   wasmState: IMapTestState;
   mcpState: IMapTestState;
@@ -114,6 +120,8 @@ export enum Direction {
 }
 
 export interface ITestResults {
+  runCount: number;
+  currentIndex: number;
   mapState: IMapState;
   spiralState: ISpiralState;
   mcpResults: ITestSummary[][];
@@ -127,6 +135,7 @@ export interface ITestSummary {
 }
 
 export interface ISpiralState {
+  totalPansPerZoom: number;
   stepsLeft: number;
   totalSteps: number;
   direction: Direction;

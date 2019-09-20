@@ -5,7 +5,7 @@ import pointData from '../../assets/json/points.json';
 import GoogleMapReact, { ChangeEventValue, Maps, Bounds } from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
 import WasmMapCluster from '../../components/lab/WasmMapCluster';
-import { IGatsbyProps, IClustererState, IPoint, ICluster, IBounds } from '../../util/interfaces';
+import { IGatsbyProps, IClustererState, IPoint, ICluster, IBounds, IMapState } from '../../util/interfaces';
 import ClusteringStats from '../../components/lab/ClusteringStats';
 import TestControls from '../../components/lab/TestControls';
 import { INTIAL_MAP_STATE } from '../../util/constants';
@@ -50,6 +50,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       },
       wasmMapState: INTIAL_MAP_STATE,
       mcpMapState: INTIAL_MAP_STATE,
+      testIsRunning: false,
     };
   }
 
@@ -98,6 +99,10 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     } else {
       this.setState({ syncMap: event.target.checked })
     }
+  }
+
+  getMapState = (type: "wasm" | "mcp"): IMapState => {
+    return type === "wasm" ? this.state.wasmMapState : this.state.mcpMapState;
   }
 
   handleMcpMapLoaded = (map: google.maps.Map, maps: Maps) => {
@@ -262,7 +267,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
             </p>
             <main>
               <div className="map-controls">
-                <TestControls 
+                <TestControls
+                  getMapState={this.getMapState}
                   setParentState={this.setState.bind(this)}
                   bounds={this.state.mcpMapState.bounds}
                   wasmState={{
@@ -277,7 +283,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
                   }}
                 ></TestControls>
                 <div className="map-sync">
-                  <input id="syncMap" name="syncMap" type="checkbox" checked={this.state.syncMap} onChange={this.changeSyncMap}/>
+                  <input id="syncMap" name="syncMap" type="checkbox" disabled={this.state.testIsRunning} checked={this.state.syncMap} onChange={this.changeSyncMap}/>
                   <label htmlFor="syncMap">Synchronize map state</label>
                 </div>
               </div>
