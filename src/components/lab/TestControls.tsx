@@ -80,7 +80,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.props.setParentState({syncMap: false, testIsRunning: true});
     this.setState({ running: true });
 
-    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, this.props.getMapState("mcp"));
+    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, Object.assign({},this.props.getMapState("mcp")));
     initialTestState.mapState.zoom = minZoom;
 
     this.centerMapHere.pipe(
@@ -120,7 +120,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
         if (doneAtZoomLevel) {
           testState.currentIndex++;
           testState.mapState.zoom++;
-          testState.mapState.center = Object.assign({}, INTIAL_MAP_STATE.center);
+          testState.mapState.center = Object.assign({}, initialTestState.mapState.center);
           testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
         } else {
           testState.mapState.center = this.calculateNextCenter(testState.mapState.center, this.props.bounds, testState.spiralState.direction);
@@ -161,8 +161,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       return accResults;
     }, {clusterTime: [], newMarkersClustered: []});
     console.log(type + "\n" +
-      totalResults.clusterTime.map(c => this.round(c)).join(", ") + "\n" +
-      totalResults.newMarkersClustered.join(", ") + "\n"
+      totalResults.newMarkersClustered.join(", ") + "\n" +
+      totalResults.clusterTime.map(c => this.round(c)).join(", ") + "\n"
     );
   }
 
