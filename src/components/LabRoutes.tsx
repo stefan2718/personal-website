@@ -1,5 +1,5 @@
 import React from 'react'
-import wasmImg from '../assets/images/marker-clusterer-plus-example.png';
+import wasmImg from '../assets/images/marker-clusterer-plus-example.jpg';
 import LabTile from './LabTile';
 
 const labTiles = [
