@@ -22,6 +22,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   mcpMap: google.maps.Map;
 
   logWasmTime = false;
+  onlyReturnModifiedClusters = true;
 
   constructor(props: IGatsbyProps) {
     super(props);
@@ -51,6 +52,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       wasmMapState: INTIAL_MAP_STATE,
       mcpMapState: INTIAL_MAP_STATE,
       testIsRunning: false,
+      zoomChanged: false,
     };
   }
 
@@ -64,7 +66,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
         this.wasmClusterer = lib;
         this.wasmClusterer.configure({
           average_center: false,
-          log_time: this.logWasmTime
+          log_time: this.logWasmTime,
+          only_return_modified_clusters: this.onlyReturnModifiedClusters,
         });
         this.wasmClusterer.addMarkers(this.torontoPoints);
         if (this.wasmMap) {
@@ -202,6 +205,18 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     }
   }
 
+  mergeModifiedClusters = (prevClusters: ICluster[], modifiedClusters: ICluster[]): ICluster[] => {
+    modifiedClusters.forEach(modifiedCluster => {
+      let index = prevClusters.findIndex(prevCluster => prevCluster.uuid === modifiedCluster.uuid);
+      if (index === -1) {
+        prevClusters.push(modifiedCluster);
+      } else {
+        prevClusters[index] = modifiedCluster;
+      }
+    });
+    return prevClusters;
+  }
+
   handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }: Partial<ChangeEventValue>) => {
     if (!this.wasmClusterer || !bounds || !zoom) return;
 
@@ -217,16 +232,19 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       let clusterEnd = performance.now();
       let clusterTime = clusterEnd - currentState.wasm.clusterStart;
       let worstTime = Math.max(clusterTime, currentState.wasm.worstTime);
+      let newClusters = !this.onlyReturnModifiedClusters || currentState.wasmMapState.zoom !== zoom || currentState.zoomChanged
+          ? wasmClusters : this.mergeModifiedClusters(currentState.wasmClusters, wasmClusters);
       return {
+        zoomChanged: false,
         wasm: {
           ...currentState.wasm,
           worstTime,
           clusterTime,
           clusterEnd,
-          totalMarkers: wasmClusters.reduce((acc, curr) => acc + curr.markers.length, 0),
-          totalClusters: wasmClusters.length
+          totalMarkers: newClusters.reduce((acc, curr) => acc + curr.markers.length, 0),
+          totalClusters: newClusters.length
         },
-        wasmClusters,
+        wasmClusters: newClusters,
         wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }
       };
     });
@@ -243,7 +261,10 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   handleMcpMapChange = ({ center, zoom, bounds, marginBounds, size }: ChangeEventValue) => {
     this.setState({mcpMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
     if (this.state.syncMap) {
-      this.setState({wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
+      this.setState(currentState => ({
+        wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) },
+        zoomChanged: currentState.wasmMapState.zoom !== zoom,
+      }));
     }
   }
 

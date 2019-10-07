@@ -1,10 +1,10 @@
 {
   "name": "stefans-website",
   "description": "Where I put stuff.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Stefan Battiston",
   "dependencies": {
-    "@stefan2718/webassembly-marker-clusterer": "0.0.8",
+    "@stefan2718/webassembly-marker-clusterer": "0.0.9",
     "eslint-config-react-app": "^3.0.8",
     "gatsby": "^2.15.29",
     "gatsby-plugin-canonical-urls": "^2.1.10",

@@ -61,6 +61,7 @@ export interface IClustererState {
   wasmMapState: IMapState;
   mcpMapState: IMapState;
   testIsRunning: boolean;
+  zoomChanged: boolean;
 }
 
 export interface IMapState {
