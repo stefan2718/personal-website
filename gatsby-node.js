@@ -48,7 +48,7 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
         rules: [
           {
             // Prevents wasm module from being bundled into html (which throws an error)
-            test: /@stefan2718\/webassembly-marker-clusterer/,
+            test: /wasm-marker-clusterer/,
             use: loaders.null(),
           },
         ],

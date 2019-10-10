@@ -9,12 +9,13 @@ import { IGatsbyProps, IClustererState, IPoint, ICluster, IBounds, IMapState } f
 import ClusteringStats from '../../components/lab/ClusteringStats';
 import TestControls from '../../components/lab/TestControls';
 import { INTIAL_MAP_STATE } from '../../util/constants';
+import { WasmMarkerClusterer } from 'wasm-marker-clusterer';
 
 class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   torontoPoints: IPoint[] = [];
 
   // Webassembly version
-  wasmClusterer: typeof import("@stefan2718/webassembly-marker-clusterer");
+  wasmClusterer: WasmMarkerClusterer;
   wasmMap: google.maps.Map;
 
   // Marker Clusterer Plus
@@ -52,7 +53,6 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       wasmMapState: INTIAL_MAP_STATE,
       mcpMapState: INTIAL_MAP_STATE,
       testIsRunning: false,
-      zoomChanged: false,
     };
   }
 
@@ -61,13 +61,12 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       let pointObj = pointStr.split(";");
       return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
     });
-    import("@stefan2718/webassembly-marker-clusterer")
-      .then(lib => {
-        this.wasmClusterer = lib;
-        this.wasmClusterer.configure({
-          average_center: false,
-          log_time: this.logWasmTime,
-          only_return_modified_clusters: this.onlyReturnModifiedClusters,
+
+    import("wasm-marker-clusterer")
+      .then(module => {
+        this.wasmClusterer = new module.WasmMarkerClusterer({ 
+          logTime: false,
+          onlyReturnModifiedClusters: true,
         });
         this.wasmClusterer.addMarkers(this.torontoPoints);
         if (this.wasmMap) {
@@ -78,13 +77,6 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
         console.error(err);
         this.setState({ loadWasmFailure: true });
       });
-  }
-
-  wasmClusterPoints = (bounds: IBounds, zoom: number): ICluster[] => {
-    if (this.logWasmTime) console.time("into-wasm");
-    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(bounds, zoom);
-    if (this.logWasmTime) console.timeEnd("out-of-wasm");
-    return wasmClusters;
   }
 
   changeSyncMap = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,25 +218,22 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       clusterTime: 0,
     }}));
 
-    let wasmClusters = this.wasmClusterPoints(this.boundsToIBounds(bounds), zoom);
+    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(this.boundsToIBounds(bounds), zoom);
 
     this.setState(currentState => {
       let clusterEnd = performance.now();
       let clusterTime = clusterEnd - currentState.wasm.clusterStart;
       let worstTime = Math.max(clusterTime, currentState.wasm.worstTime);
-      let newClusters = !this.onlyReturnModifiedClusters || currentState.wasmMapState.zoom !== zoom || currentState.zoomChanged
-          ? wasmClusters : this.mergeModifiedClusters(currentState.wasmClusters, wasmClusters);
       return {
-        zoomChanged: false,
         wasm: {
           ...currentState.wasm,
           worstTime,
           clusterTime,
           clusterEnd,
-          totalMarkers: newClusters.reduce((acc, curr) => acc + curr.markers.length, 0),
-          totalClusters: newClusters.length
+          totalMarkers: wasmClusters.reduce((acc, curr) => acc + curr.markers.length, 0),
+          totalClusters: wasmClusters.length
         },
-        wasmClusters: newClusters,
+        wasmClusters: wasmClusters,
         wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }
       };
     });
@@ -261,10 +250,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
   handleMcpMapChange = ({ center, zoom, bounds, marginBounds, size }: ChangeEventValue) => {
     this.setState({mcpMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
     if (this.state.syncMap) {
-      this.setState(currentState => ({
-        wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) },
-        zoomChanged: currentState.wasmMapState.zoom !== zoom,
-      }));
+      this.setState({ wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
     }
   }
 

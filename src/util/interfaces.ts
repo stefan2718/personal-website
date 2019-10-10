@@ -61,7 +61,6 @@ export interface IClustererState {
   wasmMapState: IMapState;
   mcpMapState: IMapState;
   testIsRunning: boolean;
-  zoomChanged: boolean;
 }
 
 export interface IMapState {
@@ -133,6 +132,7 @@ export interface ITestSummary {
   clusterCount: number;
   markerCount: number;
   clusterTime: number;
+  newMarkersClustered?: number;
 }
 
 export interface ISpiralState {

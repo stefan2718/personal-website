@@ -149,49 +149,20 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
 
   testResultsToData = (type: MapType, results: ITestSummary[][]) => {
     let totalResults = results.reduce((accResults, zoomResults) => {
-      let transposedArray = zoomResults.reduce((accTime, time) => {
-        accTime.newMarkersClustered.push(accTime.newMarkersClustered.length === 0 ? time.markerCount : 
-          time.markerCount - accTime.markerCount[accTime.markerCount.length - 1]);
-        accTime.markerCount.push(time.markerCount);
-        accTime.clusterTime.push(time.clusterTime);
-        return accTime;
-      }, { clusterTime: [], markerCount: [], newMarkersClustered: []});
-      accResults.clusterTime.push(...transposedArray.clusterTime);
-      accResults.newMarkersClustered.push(...transposedArray.newMarkersClustered);
+      zoomResults.forEach((time, index) => {
+        time.newMarkersClustered = index === 0 || type === "wasm" ? time.markerCount : 
+          time.markerCount - zoomResults[index - 1].markerCount;
+      });
+      accResults.push(...zoomResults);
       return accResults;
-    }, {clusterTime: [], newMarkersClustered: []});
-    console.log(type + "\n" +
-      totalResults.newMarkersClustered.join(", ") + "\n" +
-      totalResults.clusterTime.map(c => this.round(c)).join(", ") + "\n"
+    }, []);
+    console.log(type + "\nnewMarkers,clusterCount,clusterTime\n" +
+      totalResults.map((row) => `${row.newMarkersClustered},${row.clusterCount},${this.round(row.clusterTime)}`).join('\n')
     );
   }
 
   round = (num: number): number => {
     return Math.round(num * 10000) / 10000;
-  }
-
-  resultsToCsv = (results: ITestResults) => {
-    this.testResultsToCsv("wasm", results.wasmResults);
-    this.testResultsToCsv("mcp", results.mcpResults);
-  }
-
-  testResultsToCsv = (type: MapType, results: ITestSummary[][]) => {
-    let str = type + "\n" + results.reduce((accResults, zoomResults) => {
-      let transposedArray = zoomResults.reduce((accTime, time) => {
-        accTime.newMarkersClustered.push(accTime.newMarkersClustered.length === 0 ? time.markerCount : 
-          time.markerCount - accTime.markerCount[accTime.markerCount.length - 1]);
-        accTime.clusterCount.push(time.clusterCount);
-        accTime.markerCount.push(time.markerCount);
-        accTime.clusterTime.push(time.clusterTime);
-        return accTime;
-      }, { clusterTime: [], clusterCount: [], markerCount: [], newMarkersClustered: []});
-      return accResults + "\n" + 
-        transposedArray.clusterTime.join(", ") + "\n" +
-        transposedArray.clusterCount.join(", ") + "\n" +
-        transposedArray.markerCount.join(", ") + "\n" + 
-        transposedArray.newMarkersClustered.join(", ") + "\n";
-    }, "");
-    console.log(str);
   }
 
   setMapStateAndWaitForResults = (key: MapType, resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
