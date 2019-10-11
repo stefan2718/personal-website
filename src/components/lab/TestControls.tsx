@@ -251,16 +251,16 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
         <h4>Automated Performance Test</h4>
         <div className="inputs">
           <label htmlFor="minZoom">Min zoom<br/>
-            <input id="minZoom" type="number" min="3" max="19" value={this.state.minZoom} onChange={this.onZoomChange}/>
+            <input id="minZoom" type="number" min="3" max="19" disabled={this.state.running} value={this.state.minZoom} onChange={this.onZoomChange}/>
           </label>
           <label htmlFor="maxZoom">Max zoom<br/>
-            <input id="maxZoom" type="number" min="3" max="19" value={this.state.maxZoom} onChange={this.onZoomChange}/>
+            <input id="maxZoom" type="number" min="3" max="19" disabled={this.state.running} value={this.state.maxZoom} onChange={this.onZoomChange}/>
           </label>
           <label htmlFor="runs">Runs<br/>
-            <input id="runs" type="number" min="1" max="100" value={this.state.runs} onChange={this.onRepeatChange}/>
+            <input id="runs" type="number" min="1" max="100" disabled={this.state.running} value={this.state.runs} onChange={this.onRepeatChange}/>
           </label>
           <label htmlFor="maxPans">Max pans per zoom<br/>
-            <input id="maxPans" type="number" min="1" max="100" value={this.state.maxPans} onChange={this.onRepeatChange}/>
+            <input id="maxPans" type="number" min="1" max="100" disabled={this.state.running} value={this.state.maxPans} onChange={this.onRepeatChange}/>
           </label>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
         </div>
