@@ -80,7 +80,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.props.setParentState({syncMap: false, testIsRunning: true});
     this.setState({ running: true });
 
-    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, Object.assign({},this.props.getMapState("mcp")));
+    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, this.props.getMapState("mcp"));
+    let initialCenter = Object.freeze(Object.assign({}, initialTestState.mapState.center));
     initialTestState.mapState.zoom = minZoom;
 
     this.centerMapHere.pipe(
@@ -99,36 +100,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           }, testState)
         )
       ),
-      filter(testState => {
-        let wasmZoomResults = testState.wasmResults[testState.currentIndex];
-        let mcpZoomResults = testState.mcpResults[testState.currentIndex];
-        let allMarkersClustered =
-          wasmZoomResults[wasmZoomResults.length - 1].markerCount >= TOTAL_MARKERS &&
-          mcpZoomResults[mcpZoomResults.length - 1].markerCount >= TOTAL_MARKERS;
-
-        let doneAtZoomLevel = allMarkersClustered || (testState.spiralState.totalPansPerZoom === this.state.maxPans);
-
-        if (testState.mapState.zoom === maxZoom && doneAtZoomLevel) {
-          if (testState.runCount === this.state.runs) {
-            return true;
-          } else {
-            testState.runCount++;
-            testState.mapState.zoom = minZoom - 1;
-          }
-        }
-
-        if (doneAtZoomLevel) {
-          testState.currentIndex++;
-          testState.mapState.zoom++;
-          testState.mapState.center = Object.assign({}, initialTestState.mapState.center);
-          testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
-        } else {
-          testState.mapState.center = this.calculateNextCenter(testState.mapState.center, this.props.bounds, testState.spiralState.direction);
-          testState.spiralState = this.getNextSpiralStep(testState.spiralState);
-        }
-        this.centerMapHere.next(testState);
-        return false;
-      }),
+      filter(testState => this.isTestComplete(testState, minZoom, maxZoom, initialCenter)),
       take(1)
     ).subscribe(
       result => this.resultsToData(result),
@@ -140,6 +112,39 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     );
 
     this.centerMapHere.next(initialTestState);
+  }
+
+  // TODO split this up to make side effects more clear.
+  isTestComplete = (testState: ITestResults, minZoom: number, maxZoom: number, initialCenter: IPoint): boolean => {
+
+    let wasmZoomResults = testState.wasmResults[testState.currentIndex];
+    let mcpZoomResults = testState.mcpResults[testState.currentIndex];
+    let allMarkersClustered =
+      wasmZoomResults[wasmZoomResults.length - 1].markerCount >= TOTAL_MARKERS &&
+      mcpZoomResults[mcpZoomResults.length - 1].markerCount >= TOTAL_MARKERS;
+
+    let doneAtZoomLevel = allMarkersClustered || (testState.spiralState.totalPansPerZoom === this.state.maxPans);
+
+    if (testState.mapState.zoom === maxZoom && doneAtZoomLevel) {
+      if (testState.runCount === this.state.runs) {
+        return true;
+      } else {
+        testState.runCount++;
+        testState.mapState.zoom = minZoom - 1;
+      }
+    }
+
+    if (doneAtZoomLevel) {
+      testState.currentIndex++;
+      testState.mapState.zoom++;
+      testState.mapState.center = Object.assign({}, initialCenter);
+      testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
+    } else {
+      testState.mapState.center = this.calculateNextCenter(testState.mapState.center, this.props.bounds, testState.spiralState.direction);
+      testState.spiralState = this.getNextSpiralStep(testState.spiralState);
+    }
+    this.centerMapHere.next(testState);
+    return false;
   }
 
   resultsToData = (results: ITestResults) => {
