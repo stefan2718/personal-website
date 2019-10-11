@@ -93,3 +93,47 @@ Maintaining state of previous clusters definitely slows the WASM clustering down
 Scratch that, the small projection errors were due [to rounding in the googleprojection-rs library](https://github.com/Mange/googleprojection-rs/issues/4). Removing the rounding gives bounds and clusters that are identical to MCP.
 
 With this release, the WASM clusterer presents virtually identical clusters, at a fraction of the compute time.
+
+This version results in a 14x speedup for the Wasm version.
+
+## v0.0.9 webassembly-marker-clusterer
+
+This version added the option to only return the modified or new clusters. Then on the JS side, we can merge the modified clusters with existing clusters to get the full state.
+
+With this change, Wasm is consistently faster than JS in all use cases. Previously, Wasm would be slower than JS in cases with zero or only a few new markers. This was because the Wasm version would still be serializing and returning all the previously created clusters, which about 1ms / 1000 markers.
+
+As well in this version, I swapped out the serialization library from the default Serde serialization to [serde-wasm-bindgen](https://github.com/cloudflare/serde-wasm-bindgen) which is supposed to benefit from bypassing the JSON intermediate format. In a few simple tests, it seemed to give approximately the same performance, with 30kb less binary size.
+
+Once issue that I noticed while testing this was that Firefox sometimes seriously slowed down Wasm execution in some situations, possibly due to hot reloading, or the web tools being open, or a combination. This caused me to initially believe (incorrectly) that the `serde-wasm-bindgen` version was 4.5x slower. I plan to write Rust unit tests to encapsulate a serialization comparison to avoid this.
+
+## v0.1.0 wasm-marker-clusterer - A usable library!
+
+This version includes new Javascript logic to handle the JS merging of Wasm clustered data all in one package. Previously this logic was done outside the library, which didn't make much sense.
+
+It was a bit of a struggle to find the best way to package this. My ideal was to write some javascript that would handle the async loading of the js/wasm module output by wasm-bindgen. That way users could bundle the code that does the async module loading, without having to concern themselves with the details of it. This would've looked like this:
+```javascript
+let config = { logTime: true };
+let clusterer = new WasmMarkerClusterer(config);
+clusterer.init().then(() => {
+  clusterer.addMarkers([{lat: 1, lng: 2}]);
+  let clusters = clusterer.clusterMarkersInBounds({north: 3, south: 0, east:3, west: 0}, 8);
+})
+```
+
+However, this proved difficult on the user side, as webpack couldn't really figure out what was going on with this library. It would bundle none of it (and fail because then you couldn't use it) or bundle all of it (and fail because you can't synchronously load Wasm files). This also could've just been a lack of Webpack knowledge on my part, but I gave up on this approach regardless.
+
+I eventually had to give up on Webpack all-together because it kept complaining that:
+
+```
+WebAssembly module is included in initial chunk.
+This is not allowed, because WebAssembly download and compilation must happen asynchronous.
+Add an async splitpoint (i. e. import()) somewhere between your entrypoint and the WebAssembly module
+```
+
+So now the whole libary has to be loaded async and the user needs to care about knowing how a dynamic `import` works.
+
+## v0.1.1 wasm-marker-clusterer
+
+New tests that also output the number of clusters allow for a better analysis. Turns out the v0.0.8 results that didn't use this had a very low R^2 (a bad fit) for the Wasm results.
+
+Going to need to modify the grid-size to get more varied results with different numbers of clusters.
