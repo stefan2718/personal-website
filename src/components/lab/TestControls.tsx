@@ -1,7 +1,7 @@
 import React from "react"
 import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType } from "../../util/interfaces";
-import { Subject, defer, concat, Observable } from "rxjs";
-import { take, concatMap, map, delay, reduce, filter, } from 'rxjs/operators';
+import { Subject, defer, concat, Observable, } from "rxjs";
+import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
 
 const COOLDOWN_WAIT_TIME = 300;
@@ -22,6 +22,10 @@ const getTestInitialState = (zoomLevels: number, initialMapState: IMapState = IN
   mcpResults: Array(zoomLevels).fill(0).map(() => []),
   wasmResults: Array(zoomLevels).fill(0).map(() => []),
 });
+
+enum TestCompletionState {
+  COMPLETE, DONE_RUN, DONE_AT_ZOOM, NEXT_PAN
+}
 
 class TestControls extends React.Component<ITestControlsProps, ITestControlsState> {
 
@@ -100,10 +104,11 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           }, testState)
         )
       ),
-      filter(testState => this.isTestComplete(testState, minZoom, maxZoom, initialCenter)),
-      take(1)
+      map(testState => ({ testState, completion: this.getTestCompletionState(testState, maxZoom) })),
+      tap(state => this.triggerNextTestStep(state.completion, state.testState, minZoom, initialCenter)),
+      first(state => state.completion === TestCompletionState.COMPLETE)
     ).subscribe(
-      result => this.resultsToData(result),
+      result => this.resultsToData(result.testState),
       err => console.error("Uh-oh!", err),
       () => {
         this.props.setParentState({syncMap: true, testIsRunning: false});
@@ -114,9 +119,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.centerMapHere.next(initialTestState);
   }
 
-  // TODO split this up to make side effects more clear.
-  isTestComplete = (testState: ITestResults, minZoom: number, maxZoom: number, initialCenter: IPoint): boolean => {
-
+  getTestCompletionState = (testState: ITestResults, maxZoom: number): TestCompletionState => {
     let wasmZoomResults = testState.wasmResults[testState.currentIndex];
     let mcpZoomResults = testState.mcpResults[testState.currentIndex];
     let allMarkersClustered =
@@ -125,26 +128,41 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
 
     let doneAtZoomLevel = allMarkersClustered || (testState.spiralState.totalPansPerZoom === this.state.maxPans);
 
-    if (testState.mapState.zoom === maxZoom && doneAtZoomLevel) {
-      if (testState.runCount === this.state.runs) {
-        return true;
+    if (doneAtZoomLevel) {
+      if (testState.mapState.zoom === maxZoom) {
+        if (testState.runCount === this.state.runs) {
+          return TestCompletionState.COMPLETE;
+        } else {
+          return TestCompletionState.DONE_RUN;
+        }
       } else {
+        return TestCompletionState.DONE_AT_ZOOM;
+      }
+    } else {
+      return TestCompletionState.NEXT_PAN;
+    }
+  }
+
+  triggerNextTestStep = (testCompletion: TestCompletionState, testState: ITestResults, minZoom: number, initialCenter: IPoint): void => {
+    switch (testCompletion) {
+      case TestCompletionState.COMPLETE:
+        return;
+      case TestCompletionState.DONE_RUN:
         testState.runCount++;
         testState.mapState.zoom = minZoom - 1;
-      }
+      case TestCompletionState.DONE_AT_ZOOM:
+        testState.currentIndex++;
+        testState.mapState.zoom++;
+        testState.mapState.center = Object.assign({}, initialCenter);
+        testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
+        this.centerMapHere.next(testState);
+        break;
+      case TestCompletionState.NEXT_PAN:
+        testState.mapState.center = this.calculateNextCenter(testState.mapState.center, this.props.bounds, testState.spiralState.direction);
+        testState.spiralState = this.getNextSpiralStep(testState.spiralState);
+        this.centerMapHere.next(testState);
+        break;
     }
-
-    if (doneAtZoomLevel) {
-      testState.currentIndex++;
-      testState.mapState.zoom++;
-      testState.mapState.center = Object.assign({}, initialCenter);
-      testState.spiralState = Object.assign({}, INITIAL_SPIRAL_STATE);
-    } else {
-      testState.mapState.center = this.calculateNextCenter(testState.mapState.center, this.props.bounds, testState.spiralState.direction);
-      testState.spiralState = this.getNextSpiralStep(testState.spiralState);
-    }
-    this.centerMapHere.next(testState);
-    return false;
   }
 
   resultsToData = (results: ITestResults) => {
@@ -179,7 +197,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       });
       return resultSubject.pipe(
         map(state => ({ key, state })),
-        take(1),
+        first(),
         delay(COOLDOWN_WAIT_TIME),
       );
     });
