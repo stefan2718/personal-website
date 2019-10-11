@@ -150,8 +150,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   testResultsToData = (type: MapType, results: ITestSummary[][]) => {
     let totalResults = results.reduce((accResults, zoomResults) => {
       zoomResults.forEach((time, index) => {
-        time.newMarkersClustered = index === 0 || type === "wasm" ? time.markerCount : 
-          time.markerCount - zoomResults[index - 1].markerCount;
+        time.newMarkersClustered = index === 0 ? time.markerCount : time.markerCount - zoomResults[index - 1].markerCount;
       });
       accResults.push(...zoomResults);
       return accResults;
