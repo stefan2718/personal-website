@@ -135,6 +135,13 @@ export interface ITestSummary {
   newMarkersClustered?: number;
 }
 
+export interface ICombinedResult {
+  clusterCount: number;
+  wasmClusterTime?: number;
+  mcpClusterTime?: number;
+  newMarkersClustered: number;
+}
+
 export interface ISpiralState {
   totalPansPerZoom: number;
   stepsLeft: number;

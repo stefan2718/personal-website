@@ -1,5 +1,5 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType } from "../../util/interfaces";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult } from "../../util/interfaces";
 import { Subject, defer, concat, Observable, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
@@ -166,11 +166,42 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   }
 
   resultsToData = (results: ITestResults) => {
-    this.testResultsToData("wasm", results.wasmResults);
-    this.testResultsToData("mcp", results.mcpResults);
+    let wasmResults = this.flattenTestResults(results.wasmResults);
+    let mcpResults = this.flattenTestResults(results.mcpResults);
+    let totalResults: ICombinedResult[] = [];
+    if (wasmResults.length !== mcpResults.length) {
+      throw new Error(`Length of Wasm results (${wasmResults.length}) not equal to MCP results (${mcpResults.length})`);
+    }
+    mcpResults.forEach((_, i) => {
+      if (mcpResults[i].newMarkersClustered === wasmResults[i].newMarkersClustered && mcpResults[i].clusterCount === wasmResults[i].clusterCount) {
+        totalResults.push({
+          clusterCount: mcpResults[i].clusterCount,
+          newMarkersClustered: mcpResults[i].newMarkersClustered,
+          mcpClusterTime: mcpResults[i].clusterTime,
+          wasmClusterTime: wasmResults[i].clusterTime,
+        });
+      } else {
+        totalResults.push({
+          clusterCount: mcpResults[i].clusterCount,
+          newMarkersClustered: mcpResults[i].newMarkersClustered,
+          mcpClusterTime: mcpResults[i].clusterTime,
+        });
+        totalResults.push({
+          clusterCount: wasmResults[i].clusterCount,
+          newMarkersClustered: wasmResults[i].newMarkersClustered,
+          wasmClusterTime: wasmResults[i].clusterTime,
+        });
+      }
+    });
+    console.log('New Markers Clustered, Clusters, Wasm Cluster Time, MCP Cluster Time\n' +
+      totalResults.map(row => `${row.newMarkersClustered},${row.clusterCount},` +
+        `${row.wasmClusterTime ? this.round(row.wasmClusterTime) : ''},` +
+        `${row.mcpClusterTime  ? this.round(row.mcpClusterTime)  : ''}`)
+        .join('\n')
+    );
   }
 
-  testResultsToData = (type: MapType, results: ITestSummary[][]) => {
+  flattenTestResults = (results: ITestSummary[][]): ITestSummary[] => {
     let totalResults = results.reduce((accResults, zoomResults) => {
       zoomResults.forEach((time, index) => {
         time.newMarkersClustered = index === 0 ? time.markerCount : time.markerCount - zoomResults[index - 1].markerCount;
@@ -178,9 +209,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       accResults.push(...zoomResults);
       return accResults;
     }, []);
-    console.log(type + "\nnewMarkers,clusterCount,clusterTime\n" +
-      totalResults.map((row) => `${row.newMarkersClustered},${row.clusterCount},${this.round(row.clusterTime)}`).join('\n')
-    );
+    return totalResults;
   }
 
   round = (num: number): number => {
