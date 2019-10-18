@@ -1,8 +1,9 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, IPoint, IBounds, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult } from "../../util/interfaces";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult } from "../../util/interfaces";
 import { Subject, defer, concat, Observable, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
+import { IMarker, IBounds } from "wasm-marker-clusterer";
 
 const COOLDOWN_WAIT_TIME = 300;
 const INITIAL_SPIRAL_STATE: ISpiralState = Object.freeze({
@@ -143,7 +144,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     }
   }
 
-  triggerNextTestStep = (testCompletion: TestCompletionState, testState: ITestResults, minZoom: number, initialCenter: IPoint): void => {
+  triggerNextTestStep = (testCompletion: TestCompletionState, testState: ITestResults, minZoom: number, initialCenter: IMarker): void => {
     switch (testCompletion) {
       case TestCompletionState.COMPLETE:
         return;
@@ -247,7 +248,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     return (++direction % 4);
   }
 
-  calculateNextCenter = (center: IPoint, bounds: IBounds, direction: Direction): IPoint => {
+  calculateNextCenter = (center: IMarker, bounds: IBounds, direction: Direction): IMarker => {
     switch (direction) {
       case Direction.north:
         return {

@@ -1,4 +1,5 @@
-import { IMapState, IBounds } from "./interfaces";
+import { IMapState } from "./interfaces";
+import { IBounds } from "wasm-marker-clusterer";
 
 export const INTIAL_MAP_STATE: IMapState = Object.freeze({ 
   center: { lat: 43.6358644, lng: -79.4673894 }, 

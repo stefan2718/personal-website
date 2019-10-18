@@ -5,14 +5,15 @@ import pointData from '../../assets/json/points.json';
 import GoogleMapReact, { ChangeEventValue, Maps, Bounds } from 'google-map-react';
 import MarkerClusterer from '../../assets/markerclusterer';
 import WasmMapCluster from '../../components/lab/WasmMapCluster';
-import { IGatsbyProps, IClustererState, IPoint, ICluster, IBounds, IMapState } from '../../util/interfaces';
+import { IGatsbyProps, IClustererState, IMapState } from '../../util/interfaces';
 import ClusteringStats from '../../components/lab/ClusteringStats';
 import TestControls from '../../components/lab/TestControls';
 import { INTIAL_MAP_STATE } from '../../util/constants';
-import { WasmMarkerClusterer } from 'wasm-marker-clusterer';
+import { WasmMarkerClusterer, IMarker, ICluster } from 'wasm-marker-clusterer';
+import { iBoundsToBounds, boundsToIBounds } from '../../util/helpers';
 
 class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
-  torontoPoints: IPoint[] = [];
+  torontoPoints: IMarker[] = [];
 
   // Webassembly version
   wasmClusterer: WasmMarkerClusterer;
@@ -163,50 +164,8 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
     this.handleWasmMapChange({ 
       center: { lat: map.getCenter().lat(), lng: map.getCenter().lng() },
       zoom: map.getZoom(),
-      bounds: this.iBoundsToBounds(map.getBounds().toJSON())
+      bounds: iBoundsToBounds(map.getBounds().toJSON())
     });
-  }
-
-  iBoundsToBounds = (iBounds: IBounds): Bounds => {
-    return {
-      ne: {
-        lat: iBounds.north,
-        lng: iBounds.east,
-      },
-      sw: {
-        lat: iBounds.south,
-        lng: iBounds.west,
-      },
-      nw: {
-        lat: iBounds.north,
-        lng: iBounds.west,
-      },
-      se: {
-        lat: iBounds.south,
-        lng: iBounds.east,
-      },
-    }
-  }
-
-  boundsToIBounds = (bounds: Bounds): IBounds => {
-    return {
-      north: bounds.ne.lat,
-      east:  bounds.ne.lng,
-      south: bounds.sw.lat,
-      west:  bounds.sw.lng,
-    }
-  }
-
-  mergeModifiedClusters = (prevClusters: ICluster[], modifiedClusters: ICluster[]): ICluster[] => {
-    modifiedClusters.forEach(modifiedCluster => {
-      let index = prevClusters.findIndex(prevCluster => prevCluster.uuid === modifiedCluster.uuid);
-      if (index === -1) {
-        prevClusters.push(modifiedCluster);
-      } else {
-        prevClusters[index] = modifiedCluster;
-      }
-    });
-    return prevClusters;
   }
 
   handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }: Partial<ChangeEventValue>) => {
@@ -218,7 +177,7 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
       clusterTime: 0,
     }}));
 
-    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(this.boundsToIBounds(bounds), zoom);
+    let wasmClusters = this.wasmClusterer.clusterMarkersInBounds(boundsToIBounds(bounds), zoom);
 
     this.setState(currentState => {
       let clusterEnd = performance.now();
@@ -234,11 +193,11 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
           totalClusters: wasmClusters.length
         },
         wasmClusters: wasmClusters,
-        wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }
+        wasmMapState: { center, zoom, bounds: boundsToIBounds(bounds) }
       };
     });
     if (this.state.syncMap) {
-      this.setState({mcpMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
+      this.setState({mcpMapState: { center, zoom, bounds: boundsToIBounds(bounds) }});
     }
   }
 
@@ -248,9 +207,9 @@ class Clusterer extends React.Component<IGatsbyProps, IClustererState> {
 
   // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
   handleMcpMapChange = ({ center, zoom, bounds, marginBounds, size }: ChangeEventValue) => {
-    this.setState({mcpMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
+    this.setState({mcpMapState: { center, zoom, bounds: boundsToIBounds(bounds) }});
     if (this.state.syncMap) {
-      this.setState({ wasmMapState: { center, zoom, bounds: this.boundsToIBounds(bounds) }});
+      this.setState({ wasmMapState: { center, zoom, bounds: boundsToIBounds(bounds) }});
     }
   }
 

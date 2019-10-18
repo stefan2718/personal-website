@@ -1,5 +1,5 @@
 import React from "react"
-import { ICluster } from "../../util/interfaces";
+import { ICluster } from "wasm-marker-clusterer";
 
 class WasmMapCluster extends React.Component<ICluster & { lat: number, lng: number, onClick: (cluster: ICluster) => void }> {
 

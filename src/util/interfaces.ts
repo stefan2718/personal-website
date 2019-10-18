@@ -1,4 +1,5 @@
 import { Query } from "../graphql";
+import { IBounds, ICluster, IMarker } from "wasm-marker-clusterer";
 
 export interface IGatsbyLocation {
   ancestorOrigins?: DOMStringList;
@@ -14,11 +15,6 @@ export interface IGatsbyLocation {
   search?: string;
 }
 
-export interface IPoint {
-  lat: number;
-  lng: number;
-}
-
 export interface IGatsbyProps {
   location: IGatsbyLocation;
   data?: Query;
@@ -31,21 +27,6 @@ export interface IClustererStats {
   worstTime: number;
   totalClusters: number;
   totalMarkers: number;
-}
-
-export interface ICluster {
-  uuid?: string;
-  size: number;
-  center: IPoint;
-  bounds?: IBounds;
-  markers: IPoint[];
-}
-
-export interface IBounds {
-  north: number;
-  east: number;
-  south: number;
-  west: number;
 }
 
 export interface IClustererState {
@@ -64,7 +45,7 @@ export interface IClustererState {
 }
 
 export interface IMapState {
-  center: IPoint,
+  center: IMarker,
   bounds: IBounds,
   zoom: number
 }

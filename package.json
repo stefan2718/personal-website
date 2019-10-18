@@ -28,7 +28,7 @@
     "react-dom": "^16.10.2",
     "react-helmet": "^5.2.1",
     "rxjs": "^6.5.3",
-    "wasm-marker-clusterer": "^0.1.1"
+    "wasm-marker-clusterer": "file:../wasm-marker-clusterer"
   },
   "keywords": [
     "gatsby"
