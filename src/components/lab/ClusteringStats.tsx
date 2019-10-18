@@ -16,11 +16,11 @@ class ClusteringStats extends React.PureComponent<IClustererStats & { comparison
         <ul className="stats">
           <li><span>
             <span>Clusters created: </span>
-            <span className="stat-value">{this.props.totalClusters}</span>
+            <span className="stat-value">{this.props.clusterCount}</span>
           </span></li>
           <li><span>
             <span>Markers clustered: </span>
-            <span className="stat-value">{this.props.totalMarkers}</span>
+            <span className="stat-value">{this.props.markerCount}</span>
           </span></li>
           <li><span>
             <span>Speed comparison</span>

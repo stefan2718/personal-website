@@ -1,4 +1,4 @@
-import { IMapState } from "./interfaces";
+import { IMapState, IClustererStats } from "./interfaces";
 import { IBounds } from "wasm-marker-clusterer";
 
 export const INTIAL_MAP_STATE: IMapState = Object.freeze({ 
@@ -10,6 +10,15 @@ export const INTIAL_MAP_STATE: IMapState = Object.freeze({
     west: -80.5385563921875,
   },
   zoom: 8 
+});
+
+export const INITIAL_STATS: IClustererStats = Object.freeze({
+  clusterStart: 0,
+  clusterEnd: 0,
+  clusterTime: 0,
+  worstTime: 0,
+  totalClusters: 0,
+  totalMarkers: 0,
 });
 
 export const BOUNDS_ALL_POINTS: IBounds = Object.freeze({ 

@@ -39,7 +39,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.state = {
       minZoom: 7,
       maxZoom: 14,
-      maxPans: 20,
+      maxPans: 5,
       runs: 1,
       running: false,
     }
@@ -71,11 +71,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   }
 
   summarizeTestResults = (testState: IMapTestState): ITestSummary => {
-    return {
-      clusterTime: testState.clusterTime,
-      clusterCount: testState.clusters.length,
-      markerCount: testState.clusters.reduce((acc, curr) => acc + curr.markers.length, 0)
-    }
+    delete testState.clusterEnd;
+    return testState;
   }
   
   startTest = () => {

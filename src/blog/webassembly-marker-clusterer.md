@@ -137,3 +137,5 @@ So now the whole libary has to be loaded async and the user needs to care about 
 New tests that also output the number of clusters allow for a better analysis. Turns out the v0.0.8 results that didn't use this had a very low R^2 (a bad fit) for the Wasm results.
 
 Going to need to modify the grid-size to get more varied results with different numbers of clusters.
+
+TODO: Some stuff about testing and benching with Rust/Wasm

@@ -1,5 +1,6 @@
 import { Query } from "../graphql";
 import { IBounds, ICluster, IMarker } from "wasm-marker-clusterer";
+import { ReactNode } from "react";
 
 export interface IGatsbyLocation {
   ancestorOrigins?: DOMStringList;
@@ -25,19 +26,15 @@ export interface IClustererStats {
   clusterEnd: number;
   clusterTime: number;
   worstTime: number;
-  totalClusters: number;
-  totalMarkers: number;
+  clusterCount: number;
+  markerCount: number;
 }
 
 export interface IClustererState {
-  loadWasmFailure: boolean;
-  loadDataFailure: boolean;
-  wasmClusters: ICluster[],
   mcpClusters: ICluster[],
   clickedMcpCluster?: ICluster;
-  clickedWasmCluster?: ICluster;
   syncMap: boolean;
-  wasm: IClustererStats;
+  wasmMapTestState: IMapTestState;
   mcp: IClustererStats;
   wasmMapState: IMapState;
   mcpMapState: IMapState;
@@ -78,7 +75,8 @@ export interface ITestControlsState {
 export interface IMapTestState {
   clusterTime: number;
   clusterEnd: number;
-  clusters: ICluster[];
+  clusterCount: number;
+  markerCount: number;
 }
 
 export type MapType = "mcp" | "wasm";
@@ -129,4 +127,23 @@ export interface ISpiralState {
   totalSteps: number;
   direction: Direction;
   isFirstOfTwoDirections: boolean;
+}
+
+export interface IMapWrapperProps {
+  title: string;
+  children: ReactNode;
+  clustererStats: IClustererStats;
+  mapState: IMapState;
+  comparisonTime: number;
+  clickedCluster?: ICluster;
+}
+
+export interface IMapProps {
+  allMarkers: IMarker[];
+  syncMap: boolean;
+  mapState: IMapState;
+  setMapState: (mapState: IMapState) => void
+  setOtherMapState: (otherMapState: IMapState) => void;
+  setMapTestState: (mapTestState: IMapTestState) => void;
+  comparisonTime: number;
 }
