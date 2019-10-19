@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GoogleMapReact, { Maps, ChangeEventValue } from "google-map-react";
 import WasmMapCluster from "./WasmMapCluster";
-import { useState, useEffect } from "react";
 import { IMapProps, IClustererStats } from "../../util/interfaces";
 import MapWrapper from "./MapWrapper";
 import { ICluster, WasmMarkerClusterer } from "wasm-marker-clusterer";
@@ -37,6 +36,7 @@ export default function WasmMap(props: IMapProps) {
         updateWasmMap(map);
       }
     }
+    return () => clusterer && clusterer.clear();
   }, [clusterer]);
 
   const handleWasmMapLoaded = (map: google.maps.Map, maps: Maps) => {

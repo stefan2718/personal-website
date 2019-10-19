@@ -35,7 +35,7 @@ export interface IClustererState {
   clickedMcpCluster?: ICluster;
   syncMap: boolean;
   wasmMapTestState: IMapTestState;
-  mcp: IClustererStats;
+  mcpMapTestState: IMapTestState;
   wasmMapState: IMapState;
   mcpMapState: IMapState;
   testIsRunning: boolean;
