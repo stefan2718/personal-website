@@ -79,7 +79,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     let maxZoom = Math.max(this.state.maxZoom, this.state.minZoom);
     let minZoom = Math.min(this.state.maxZoom, this.state.minZoom);
     let zoomsPerRun = maxZoom - minZoom + 1;
-    this.props.setParentState({syncMap: false, testIsRunning: true});
+    this.props.setSyncMap(false);
+    this.props.setTestIsRunning(true);
     this.setState({ running: true });
 
     let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, this.props.getMapState("mcp"));
@@ -109,7 +110,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       result => this.resultsToData(result.testState),
       err => console.error("Uh-oh!", err),
       () => {
-        this.props.setParentState({syncMap: true, testIsRunning: false});
+        this.props.setSyncMap(true);
+        this.props.setTestIsRunning(false);
         this.setState({ running: false });
       }
     );
@@ -216,12 +218,11 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
 
   setMapStateAndWaitForResults = (key: MapType, resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
     return defer(() => {
-      this.props.setParentState((currentState: any) => {
-        return {
-          ...currentState,
-          [`${key}MapState`]: mapState
-        };
-      });
+      if (key === "wasm") {
+        this.props.setWasmMapState(mapState);
+      } else {
+        this.props.setMcpMapState(mapState);
+      }
       return resultSubject.pipe(
         map(state => ({ key, state })),
         first(),
@@ -268,7 +269,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           lng: bounds.west
         };
       default:
-        console.error("Unknown 'Direction':", direction);
+        throw new Error(`Unknown 'Direction': ${direction}`);
     }
   }
 

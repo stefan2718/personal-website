@@ -17,8 +17,8 @@ export const INITIAL_STATS: IClustererStats = Object.freeze({
   clusterEnd: 0,
   clusterTime: 0,
   worstTime: 0,
-  totalClusters: 0,
-  totalMarkers: 0,
+  clusterCount: 0,
+  markerCount: 0,
 });
 
 export const BOUNDS_ALL_POINTS: IBounds = Object.freeze({ 

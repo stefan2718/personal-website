@@ -30,17 +30,6 @@ export interface IClustererStats {
   markerCount: number;
 }
 
-export interface IClustererState {
-  mcpClusters: ICluster[],
-  clickedMcpCluster?: ICluster;
-  syncMap: boolean;
-  wasmMapTestState: IMapTestState;
-  mcpMapTestState: IMapTestState;
-  wasmMapState: IMapState;
-  mcpMapState: IMapState;
-  testIsRunning: boolean;
-}
-
 export interface IMapState {
   center: IMarker,
   bounds: IBounds,
@@ -88,7 +77,10 @@ export interface IKeyedMapTestState {
 
 export interface ITestControlsProps {
   getMapState: (type: MapType) => IMapState;
-  setParentState: any;
+  setSyncMap: (syncMap: boolean) => void;
+  setTestIsRunning: (testIsRunning: boolean) => void;
+  setWasmMapState: (wasmMapState: IMapState) => void;
+  setMcpMapState: (mcpMapState: IMapState) => void;
   wasmState: IMapTestState;
   mcpState: IMapTestState;
   bounds: IBounds;
