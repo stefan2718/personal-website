@@ -22,6 +22,7 @@ export default function Clusterer(props: IGatsbyProps) {
       return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
     }));
 
+  let [gridSize, setGridSize] = useState(60);
   let [syncMap, setSyncMap] = useState(true);
   let [testIsRunning, setTestIsRunning] = useState(true);
   let [wasmMapTestState, setWasmMapTestState] = useState<IMapTestState>(getInitialTestState());
@@ -58,6 +59,7 @@ export default function Clusterer(props: IGatsbyProps) {
           <main>
             <div className="map-controls">
               <TestControls
+                setGridSize={setGridSize}
                 getMapState={getMapState}
                 setSyncMap={setSyncMap}
                 setTestIsRunning={setTestIsRunning}
@@ -74,6 +76,7 @@ export default function Clusterer(props: IGatsbyProps) {
             </div>
             <div className="point-comparison">
               <WasmMap
+                gridSize={gridSize}
                 allMarkers={torontoPoints}
                 syncMap={syncMap}
                 comparisonTime={mcpMapTestState.clusterTime}
@@ -83,6 +86,7 @@ export default function Clusterer(props: IGatsbyProps) {
                 setMapTestState={setWasmMapTestState}
                 />
               <McpMap
+                gridSize={gridSize}
                 allMarkers={torontoPoints}
                 syncMap={syncMap}
                 comparisonTime={wasmMapTestState.clusterTime}

@@ -52,13 +52,16 @@ export interface IBlogSummary {
   excerpt: string;
 }
 
-export interface ITestControlsState {
+export interface ITestControlsState extends ITestControlsStateNumbers {
+  running: boolean;
+}
+
+export interface ITestControlsStateNumbers {
+  gridSize: number;
   minZoom: number;
   maxZoom: number;
   maxPans: number;
   runs: number;
-  running: boolean;
-  [key: string]: any; // So we can setState using bracket notation
 }
 
 export interface IMapTestState {
@@ -81,6 +84,7 @@ export interface ITestControlsProps {
   setTestIsRunning: (testIsRunning: boolean) => void;
   setWasmMapState: (wasmMapState: IMapState) => void;
   setMcpMapState: (mcpMapState: IMapState) => void;
+  setGridSize: (gridSize: number) => void;
   wasmState: IMapTestState;
   mcpState: IMapTestState;
   bounds: IBounds;
@@ -138,4 +142,5 @@ export interface IMapProps {
   setOtherMapState: (otherMapState: IMapState) => void;
   setMapTestState: (mapTestState: IMapTestState) => void;
   comparisonTime: number;
+  gridSize: number;
 }

@@ -1,6 +1,6 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult } from "../../util/interfaces";
-import { Subject, defer, concat, Observable, } from "rxjs";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult, ITestControlsStateNumbers } from "../../util/interfaces";
+import { Subject, defer, concat, Observable, forkJoin, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
 import { IMarker, IBounds } from "wasm-marker-clusterer";
@@ -28,6 +28,20 @@ enum TestCompletionState {
   COMPLETE, DONE_RUN, DONE_AT_ZOOM, NEXT_PAN
 }
 
+const minMax: {[key in keyof ITestControlsStateNumbers] : {min: number, max: number}} = {
+  gridSize: { min: 10, max: 400 },
+  minZoom: { min: 1, max: 19 },
+  maxZoom: { min: 1, max: 19 },
+  maxPans: { min: 1, max: 100 },
+  runs: { min: 1, max: 100 },
+}
+
+const numKeys: (keyof ITestControlsStateNumbers)[] = ["runs", "maxPans", "minZoom", "maxZoom", "gridSize"];
+
+const isNumKey = (key: string): key is keyof ITestControlsStateNumbers => {
+  return numKeys.includes(key as any);
+}
+
 class TestControls extends React.Component<ITestControlsProps, ITestControlsState> {
 
   wasmState: Subject<IMapTestState> = new Subject();
@@ -37,6 +51,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   constructor(props: ITestControlsProps) {
     super(props);
     this.state = {
+      gridSize: 60,
       minZoom: 7,
       maxZoom: 14,
       maxPans: 5,
@@ -54,19 +69,17 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     }
   }
 
-  onRepeatChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event && event.target && ["runs", "maxPans"].includes(event.target.id)) {
-      let value = Number(event.target.value);
-      value = value > 100 ? 100 : value < 1 ? 1 : value;
-      this.setState({ [event.target.id]: value });
-    }
-  }
-
-  onZoomChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event && event.target && ["minZoom", "maxZoom"].includes(event.target.id)) {
-      let value = Number(event.target.value);
-      value = value > 19 ? 19 : value < 1 ? 1 : value;
-      this.setState({ [event.target.id]: value });
+  onNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event && event.target) {
+      let id = event.target.id;
+      if (isNumKey(id)) {
+        let value = Number(event.target.value);
+        value = value > minMax[id].max ? minMax[id].max : value < minMax[id].min ? minMax[id].min : value;
+        this.setState({ [id]: value } as { [key in keyof ITestControlsStateNumbers]: number });
+        if (id === "gridSize") {
+          this.props.setGridSize(value);
+        }
+      }
     }
   }
 
@@ -83,7 +96,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.props.setTestIsRunning(true);
     this.setState({ running: true });
 
-    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, this.props.getMapState("mcp"));
+    let initialMapState = this.props.getMapState("mcp");
+    let initialTestState = getTestInitialState(zoomsPerRun * this.state.runs, initialMapState);
     let initialCenter = Object.freeze(Object.assign({}, initialTestState.mapState.center));
     initialTestState.mapState.zoom = minZoom;
 
@@ -116,7 +130,19 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       }
     );
 
-    this.centerMapHere.next(initialTestState);
+    // If the current zoom equals the first test zoom, zoom out once, then start.
+    if (initialMapState.zoom === minZoom) {
+      initialTestState.mapState.zoom--;
+      forkJoin(
+        this.setMapStateAndWaitForResults("wasm", this.wasmState, initialTestState.mapState),
+        this.setMapStateAndWaitForResults("mcp", this.mcpState, initialTestState.mapState)
+      ).subscribe(() => {
+        initialTestState.mapState.zoom++;
+        this.centerMapHere.next(initialTestState);
+      });
+    } else {
+      this.centerMapHere.next(initialTestState);
+    }
   }
 
   getTestCompletionState = (testState: ITestResults, maxZoom: number): TestCompletionState => {
@@ -278,17 +304,20 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       <div className="test-controls">
         <h4>Automated Performance Test</h4>
         <div className="inputs">
+          <label htmlFor="gridSize">Grid Size<br/>
+            <input step="10" id="gridSize" type="number" min={minMax["gridSize"].min} max={minMax["gridSize"].max} disabled={this.state.running} value={this.state.gridSize} onChange={this.onNumberChange}/>
+          </label>
           <label htmlFor="minZoom">Min zoom<br/>
-            <input id="minZoom" type="number" min="3" max="19" disabled={this.state.running} value={this.state.minZoom} onChange={this.onZoomChange}/>
+            <input id="minZoom" type="number" min={minMax["minZoom"].min} max={minMax["minZoom"].max} disabled={this.state.running} value={this.state.minZoom} onChange={this.onNumberChange}/>
           </label>
           <label htmlFor="maxZoom">Max zoom<br/>
-            <input id="maxZoom" type="number" min="3" max="19" disabled={this.state.running} value={this.state.maxZoom} onChange={this.onZoomChange}/>
+            <input id="maxZoom" type="number" min={minMax["maxZoom"].min} max={minMax["maxZoom"].max} disabled={this.state.running} value={this.state.maxZoom} onChange={this.onNumberChange}/>
           </label>
           <label htmlFor="runs">Runs<br/>
-            <input id="runs" type="number" min="1" max="100" disabled={this.state.running} value={this.state.runs} onChange={this.onRepeatChange}/>
+            <input id="runs" type="number" min={minMax["runs"].min} max={minMax["runs"].max} disabled={this.state.running} value={this.state.runs} onChange={this.onNumberChange}/>
           </label>
           <label htmlFor="maxPans">Max pans per zoom<br/>
-            <input id="maxPans" type="number" min="1" max="100" disabled={this.state.running} value={this.state.maxPans} onChange={this.onRepeatChange}/>
+            <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
           </label>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
         </div>

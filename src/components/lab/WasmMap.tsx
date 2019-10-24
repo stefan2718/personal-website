@@ -21,6 +21,7 @@ export default function WasmMap(props: IMapProps) {
         setClusterer(new module.WasmMarkerClusterer({ 
           logTime: false,
           onlyReturnModifiedClusters: true,
+          gridSize: props.gridSize,
         })
       ))
       .catch(err => {
@@ -32,12 +33,17 @@ export default function WasmMap(props: IMapProps) {
   useEffect(() => {
     if (clusterer) {
       clusterer.addMarkers(props.allMarkers);
-      if (map) {
-        updateWasmMap(map);
-      }
+      updateWasmMap(map);
     }
     return () => clusterer && clusterer.clear();
   }, [clusterer]);
+
+  useEffect(() => {
+    if (clusterer) {
+      clusterer.configure({ gridSize: props.gridSize });
+      updateWasmMap(map);
+    }
+  }, [props.gridSize]);
 
   const handleWasmMapLoaded = (map: google.maps.Map, maps: Maps) => {
     setMap(map);
@@ -45,11 +51,13 @@ export default function WasmMap(props: IMapProps) {
   }
 
   const updateWasmMap = (map: google.maps.Map) => {
-    handleWasmMapChange({ 
-      center: { lat: map.getCenter().lat(), lng: map.getCenter().lng() },
-      zoom: map.getZoom(),
-      bounds: iBoundsToBounds(map.getBounds().toJSON())
-    });
+    if (map) {
+      handleWasmMapChange({
+        center: { lat: map.getCenter().lat(), lng: map.getCenter().lng() },
+        zoom: map.getZoom(),
+        bounds: iBoundsToBounds(map.getBounds().toJSON())
+      });
+    }
   }
 
   const handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }: Partial<ChangeEventValue>) => {

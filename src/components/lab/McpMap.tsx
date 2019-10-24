@@ -56,6 +56,13 @@ export default function McpMap(props: IMapProps) {
     };
   }, [clusterEnd]);
 
+  useEffect(() => {
+    if (clusterer) {
+      clusterer.setGridSize(props.gridSize);
+      clusterer.repaint();
+    }
+  }, [props.gridSize]);
+
   const handleMcpMapLoaded = (map: google.maps.Map, maps: Maps) => {
     setMap(map);
     let markers = props.allMarkers.map(pnt => {
@@ -71,7 +78,7 @@ export default function McpMap(props: IMapProps) {
       });
       return marker;
     });
-    setClusterer(new MarkerClusterer(map, markers, { imagePath: "/images/m", zoomOnClick: false }));
+    setClusterer(new MarkerClusterer(map, markers, { imagePath: "/images/m", zoomOnClick: false, gridSize: props.gridSize }));
   }
 
   const getClusterData = (cluster: Cluster, getBounds: boolean = false, sliceTo: number = -1): ICluster => ({
