@@ -1154,9 +1154,23 @@
 						text-align: center;
 					}
 					
+					$shadow-px: 3px;
+					$shadow-blur: 4px;
 					.error {
 						color: red;
 						font-size: 1.2em;
+						position: absolute;
+						z-index: 10;
+						background-color:rgba(0, 0, 0, 0.7);
+						height: 100%;
+						width: 100%;
+						text-align: center;
+						padding: 8em 0;
+						text-shadow:
+							$shadow-px $shadow-px $shadow-blur black,
+							-$shadow-px $shadow-px $shadow-blur black,
+							$shadow-px (-$shadow-px) $shadow-blur black,
+							(-$shadow-px) (-$shadow-px) $shadow-blur black;
 					}
 
 					.stats {
@@ -1208,6 +1222,7 @@
 	}
 
 	.gmap {
+		position: relative;
 		height: 350px;
 	}
 
