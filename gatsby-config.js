@@ -73,7 +73,18 @@ module.exports = {
         // purgeOnly : ['components/', '/main.css', 'bootstrap/'], // Purge only these files/folders
       }
     },
-    // TODO cache wasm.
-    'gatsby-plugin-offline'
+    {
+      resolve: 'gatsby-plugin-offline',
+      options: {
+        runtimeCaching: [
+          // Hack to handle how lodash.merge() works. This should overwrite the first default entry
+          {
+            // Use cacheFirst since file is hashed
+            urlPattern: /(\.wasm$|\.js$|\.css$|static\/)/,
+            handler: `cacheFirst`,
+          },
+        ],
+      }
+    }
   ],
 }

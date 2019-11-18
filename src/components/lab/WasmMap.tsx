@@ -16,14 +16,13 @@ export default function WasmMap(props: IMapProps) {
   let [loadWasmFailure, setLoadWasmFailure] = useState<boolean>(false);
 
   useEffect(() => {
-    import("wasm-marker-clusterer")
-      .then(module =>
-        setClusterer(new module.WasmMarkerClusterer({ 
-          logTime: false,
-          onlyReturnModifiedClusters: true,
-          gridSize: props.gridSize,
-        })
-      ))
+    let clusterer = new WasmMarkerClusterer();
+    clusterer.configure({
+        logTime: false,
+        onlyReturnModifiedClusters: true,
+        gridSize: props.gridSize,
+      })
+      .then(() => setClusterer(clusterer))
       .catch(err => {
         console.error(err);
         setLoadWasmFailure(true);
@@ -32,16 +31,16 @@ export default function WasmMap(props: IMapProps) {
 
   useEffect(() => {
     if (clusterer) {
-      clusterer.addMarkers(props.allMarkers);
-      updateWasmMap(map);
+      clusterer.addMarkers(props.allMarkers)
+        .then(() => updateWasmMap(map));
     }
     return () => clusterer && clusterer.clear();
   }, [clusterer]);
 
   useEffect(() => {
     if (clusterer) {
-      clusterer.configure({ gridSize: props.gridSize });
-      updateWasmMap(map);
+      clusterer.configure({ gridSize: props.gridSize })
+        .then(() => updateWasmMap(map));
     }
   }, [props.gridSize]);
 
@@ -60,13 +59,13 @@ export default function WasmMap(props: IMapProps) {
     }
   }
 
-  const handleWasmMapChange = ({ center, zoom, bounds, marginBounds, size }: Partial<ChangeEventValue>) => {
+  const handleWasmMapChange = async ({ center, zoom, bounds, marginBounds, size }: Partial<ChangeEventValue>) => {
     if (!clusterer || !bounds || !zoom) return;
 
     let clusterStart = performance.now();
     setStats({ ...stats, clusterStart, clusterTime: 0 });
 
-    let wasmClusters = clusterer.clusterMarkersInBounds(boundsToIBounds(bounds), zoom);
+    let wasmClusters = await clusterer.clusterMarkersInBounds(boundsToIBounds(bounds), zoom);
 
     let clusterEnd = performance.now();
     let clusterTime = clusterEnd - clusterStart;
