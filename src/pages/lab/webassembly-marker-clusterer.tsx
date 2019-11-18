@@ -24,7 +24,7 @@ export default function Clusterer(props: IGatsbyProps) {
 
   let [gridSize, setGridSize] = useState(60);
   let [syncMap, setSyncMap] = useState(true);
-  let [testIsRunning, setTestIsRunning] = useState(true);
+  let [testIsRunning, setTestIsRunning] = useState(false);
   let [wasmMapTestState, setWasmMapTestState] = useState<IMapTestState>(getInitialTestState());
   let [mcpMapTestState, setMcpMapTestState] = useState<IMapTestState>(getInitialTestState());
   let [wasmMapState, setWasmMapState] = useState<IMapState>(INTIAL_MAP_STATE);
