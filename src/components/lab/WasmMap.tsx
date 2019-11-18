@@ -96,7 +96,7 @@ export default function WasmMap(props: IMapProps) {
 
   return (
     <MapWrapper title={"WASM"} clickedCluster={clickedCluster} clustererStats={stats} mapState={props.mapState} comparisonTime={props.comparisonTime}>
-      <span className="error">{ !!loadWasmFailure ? "Wasm file failed to load :(" : ""}</span>
+      { !!loadWasmFailure && (<span className="error">Wasm file failed to load :(</span>)}
       <GoogleMapReact
         bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
         zoom={props.mapState.zoom}

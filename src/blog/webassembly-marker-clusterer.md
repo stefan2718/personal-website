@@ -139,3 +139,13 @@ New tests that also output the number of clusters allow for a better analysis. T
 Going to need to modify the grid-size to get more varied results with different numbers of clusters.
 
 TODO: Some stuff about testing and benching with Rust/Wasm
+
+## Functional Testing
+
+I had to rewrite a benchmarking library to not rely on System calls for time measurement because those aren't available in a wasm-32 target environment. Had to swap out those calls for Performance.now() calls.
+
+## More Webpack attempts
+
+While trying to setup Cypress for functional testing of the library I got back into the Webpack setup debacle and ended up tracking down some Github issues regarding my problems bundling dynamically imported bundles. See [issue #7843](https://github.com/webpack/webpack/issues/7843) and [issue 6818](https://github.com/webpack/webpack/issues/6818).
+
+I ended up setting up webpack-dev-server as a test server to serve files for Cypress, but keeping the default build process webpack-less, so it could be webpacked by the app using the library.
