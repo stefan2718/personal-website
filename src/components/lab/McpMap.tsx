@@ -99,7 +99,13 @@ export default function McpMap(props: IMapProps) {
   }
 
   return (
-    <MapWrapper title={"Javascript (MCP)"} clickedCluster={clickedCluster} mapState={props.mapState} comparisonTime={props.comparisonTime}
+    <MapWrapper
+      title={"Javascript (MCP)"}
+      clickedCluster={clickedCluster}
+      mapState={props.mapState}
+      renderIndicatorPercent={props.renderIndicatorPercent}
+      showIndicator={props.showIndicator}
+      comparisonTime={props.comparisonTime}
       clustererStats={{
         clusterCount: clusters.length,
         clusterEnd,

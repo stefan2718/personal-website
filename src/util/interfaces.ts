@@ -132,6 +132,8 @@ export interface IMapWrapperProps {
   mapState: IMapState;
   comparisonTime: number;
   clickedCluster?: ICluster;
+  renderIndicatorPercent: number;
+  showIndicator: boolean;
 }
 
 export interface IMapProps {
@@ -143,4 +145,6 @@ export interface IMapProps {
   setMapTestState: (mapTestState: IMapTestState) => void;
   comparisonTime: number;
   gridSize: number;
+  renderIndicatorPercent: number;
+  showIndicator: boolean;
 }

@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Helmet from 'react-helmet';
 import HomePageLayout from '../../components/HomePageLayout';
 import pointData from '../../assets/json/points.json';
 import { IGatsbyProps, IMapState, MapType, IMapTestState } from '../../util/interfaces';
 import TestControls from '../../components/lab/TestControls';
 import { INTIAL_MAP_STATE } from '../../util/constants';
-import { IMarker, } from 'wasm-marker-clusterer';
 import WasmMap from '../../components/lab/WasmMap';
 import McpMap from '../../components/lab/McpMap';
 
@@ -16,19 +15,38 @@ const getInitialTestState = () => ({
   markerCount: 0,
 });
 
-export default function Clusterer(props: IGatsbyProps) {
-  let [torontoPoints] = useState<IMarker[]>((pointData as string[]).map(pointStr => {
-      let pointObj = pointStr.split(";");
-      return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
-    }));
+const initialTestState = getInitialTestState();
 
+const torontoPoints = (pointData as string[]).map(pointStr => {
+  let pointObj = pointStr.split(";");
+  return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
+})
+
+export default function Clusterer(props: IGatsbyProps) {
   let [gridSize, setGridSize] = useState(60);
   let [syncMap, setSyncMap] = useState(true);
   let [testIsRunning, setTestIsRunning] = useState(false);
-  let [wasmMapTestState, setWasmMapTestState] = useState<IMapTestState>(getInitialTestState());
-  let [mcpMapTestState, setMcpMapTestState] = useState<IMapTestState>(getInitialTestState());
+  let [wasmMapTestState, setWasmMapTestState] = useState<IMapTestState>(initialTestState);
+  let [mcpMapTestState, setMcpMapTestState] = useState<IMapTestState>(initialTestState);
   let [wasmMapState, setWasmMapState] = useState<IMapState>(INTIAL_MAP_STATE);
   let [mcpMapState, setMcpMapState] = useState<IMapState>(INTIAL_MAP_STATE);
+  let [renderIndicatorPercent, setRenderIndicatorPercent] = useState(0);
+  let [renderIndicatorMovesRight, setRenderIndicatorMovesRight] = useState(true);
+  let [showIndicator, setShowIndicator] = useState(true);
+
+  useEffect(() => {
+    if (showIndicator) {
+      let timeout = setTimeout(() => {
+        if (renderIndicatorMovesRight && renderIndicatorPercent + 1 === 90) {
+          setRenderIndicatorMovesRight(false);
+        } else if (!renderIndicatorMovesRight && renderIndicatorPercent - 1 === 0) {
+          setRenderIndicatorMovesRight(true);
+        }
+        setRenderIndicatorPercent((renderIndicatorPercent + (renderIndicatorMovesRight ? 1 : -1)))
+      }, 15);
+      return () => clearTimeout(timeout);
+    }
+  }, [renderIndicatorPercent, showIndicator]);
 
   const changeSyncMap = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSyncMap(event.target.checked);
@@ -37,6 +55,7 @@ export default function Clusterer(props: IGatsbyProps) {
     }
   }
 
+  const changeShowIndicator = (event: React.ChangeEvent<HTMLInputElement>) => setShowIndicator(event.target.checked)
   const getMapState = (type: MapType): IMapState => type === "wasm" ? wasmMapState : mcpMapState;
 
   return (
@@ -72,6 +91,8 @@ export default function Clusterer(props: IGatsbyProps) {
               <div className="map-sync">
                 <input id="syncMap" name="syncMap" type="checkbox" disabled={testIsRunning} checked={syncMap} onChange={changeSyncMap}/>
                 <label htmlFor="syncMap">Synchronize map state</label>
+                <input id="showIndicator" name="showIndicator" type="checkbox" checked={showIndicator} onChange={changeShowIndicator}/>
+                <label htmlFor="showIndicator">Show rendering indicator</label>
               </div>
             </div>
             <div className="point-comparison">
@@ -84,6 +105,8 @@ export default function Clusterer(props: IGatsbyProps) {
                 setMapState={setWasmMapState}
                 setOtherMapState={setMcpMapState}
                 setMapTestState={setWasmMapTestState}
+                renderIndicatorPercent={renderIndicatorPercent}
+                showIndicator={showIndicator}
                 />
               <McpMap
                 gridSize={gridSize}
@@ -94,6 +117,8 @@ export default function Clusterer(props: IGatsbyProps) {
                 setMapState={setMcpMapState}
                 setOtherMapState={setWasmMapState}
                 setMapTestState={setMcpMapTestState}
+                renderIndicatorPercent={renderIndicatorPercent}
+                showIndicator={showIndicator}
                 />
             </div>
           </main>

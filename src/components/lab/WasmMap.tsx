@@ -94,7 +94,14 @@ export default function WasmMap(props: IMapProps) {
   }
 
   return (
-    <MapWrapper title={"WASM"} clickedCluster={clickedCluster} clustererStats={stats} mapState={props.mapState} comparisonTime={props.comparisonTime}>
+    <MapWrapper
+      title={"WASM"}
+      clickedCluster={clickedCluster}
+      clustererStats={stats}
+      mapState={props.mapState}
+      renderIndicatorPercent={props.renderIndicatorPercent}
+      showIndicator={props.showIndicator}
+      comparisonTime={props.comparisonTime}>
       { !!loadWasmFailure && (<span className="error">Wasm file failed to load :(</span>)}
       <GoogleMapReact
         bootstrapURLKeys={{ key: process.env.GMAP_API_KEY }}
