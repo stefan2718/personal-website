@@ -8,6 +8,8 @@ import { INTIAL_MAP_STATE } from '../../util/constants';
 import WasmMap from '../../components/lab/WasmMap';
 import McpMap from '../../components/lab/McpMap';
 
+import './webassembly-marker-clusterer.scss';
+
 const getInitialTestState = () => ({
   clusterEnd: 0,
   clusterTime: 0,

@@ -1,0 +1,211 @@
+@import '../assets/scss/libs/skel';
+@import '../assets/scss/libs/vars';
+@import '../assets/scss/libs/functions';
+
+#header {
+  @include vendor('display', 'flex');
+  @include vendor('flex-direction', 'column');
+  @include vendor('align-items', 'flex-end');
+  @include vendor('justify-content', 'space-between');
+  background-color:		_palette(accent2, bg);
+  background-attachment:	scroll,								fixed;
+  background-image:		url('../assets/scss/images/overlay.png'),			url('../assets/images/bg.jpg');
+  background-position:	top left,							top left;
+  background-repeat:		repeat,								no-repeat;
+  background-size:		auto,								auto 100%;
+  color: _palette(accent2, fg);
+  height: 100%;
+  left: 0;
+  padding: ($size-header-pad * 2) $size-header-pad;
+  position: fixed;
+  text-align: right;
+  top: 0;
+  width: $size-header-width;
+
+  > * {
+    @include vendor('flex-shrink', '0');
+    width: 100%;
+  }
+
+  > .inner {
+    @include vendor('flex-grow', '1');
+    margin: 0 0 ($size-header-pad * 0.5) 0;
+  }
+
+  strong, b {
+    color: _palette(accent2, fg-bold);
+  }
+
+  h2, h3, h4, h5, h6 {
+    color: _palette(accent2, fg-bold);
+  }
+
+  h1 {
+    color: _palette(accent2, fg);
+    font-size: 1.35em;
+    line-height: 1.75em;
+    margin: 0;
+  }
+
+  .image.avatar {
+    margin: 0 0 (_size(element-margin) * 0.5) 0;
+    width: 6.25em;
+  }
+}
+
+.mini-header {
+  #header {
+    width: $mini-header-width;
+    padding: 6em 1em;
+    text-align: center;
+    .inner {
+      .image.avatar {
+        width: 4em;
+      }
+      h1 {
+        display: none;
+      }
+      nav .button.special {
+        min-width: 4.4em;
+        padding: 0;
+      }
+    }
+
+  }
+}
+
+@include breakpoint(medium) {
+  .mini-header {
+    #header {
+      width: 100%;
+      height: 6em;
+      padding: 1em;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      align-content: center;
+      padding: 1em;
+      .inner {
+        margin: 0;
+        display: flex;
+        flex-direction: row;
+        width: auto;
+        align-items: center;
+        align-content: center;
+        justify-content: space-between;
+        a.no-underline {
+          line-height: 0;
+          .image {
+            margin: 0;
+          }
+        }
+        nav {
+          margin: auto;
+          display: flex;
+          flex-direction: row;
+          *:not(:last-child) {
+            margin-right: 30px;
+          }
+          a.button {
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+}
+body.is-touch {
+  #header {
+    background-attachment:	scroll;
+    background-size:		auto, cover;
+  }
+}
+
+@include breakpoint(large) {
+  #header {
+    padding: ($size-header-pad-large * 2) $size-header-pad-large $size-header-pad-large $size-header-pad-large;
+    width: $size-header-width-large;
+
+    h1 {
+      font-size: 1.25em;
+
+      br {
+        display: none;
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 980px) and (max-height: 700px) {
+  #header, .mini-header #header {
+    padding-top: 3em;
+
+    .inner nav {
+      margin-top: 3em;
+    }
+  }
+}
+
+@include breakpoint(medium) {
+  #header {
+    background-attachment:	scroll;
+    background-position:	top left,	center center;
+    background-size:		auto,		cover;
+    left: auto;
+    padding: ($size-header-pad-medium * 1.5) $size-header-pad-medium;
+    position: relative;
+    text-align: center;
+    top: auto;
+    width: 100%;
+    display: block;
+
+    h1 {
+      font-size: 1.75em;
+
+      br {
+        display: inline;
+      }
+    }
+
+    nav {
+      margin-top: 20px;
+    }
+  }
+}
+
+@include breakpoint(small) {
+  #header {
+    padding: $size-header-pad-small;
+
+    h1 {
+      font-size: 1.35em;
+    }
+  }
+
+}
+
+@include breakpoint(xsmall) {
+  #header {
+    padding: $size-header-pad-xsmall;
+
+    .inner {
+      margin: 0;
+    }
+
+    h1 {
+      br {
+        display: none;
+      }
+    }
+  }
+
+  .mini-header {
+    #header {
+      .inner {
+        a.no-underline .image {
+          display: none;
+        }
+      }
+    }
+  }
+}

@@ -5,6 +5,8 @@ import Footer from './Footer'
 import avatar from '../assets/images/avatar.jpg'
 import { Location, WindowLocation } from '@reach/router';
 
+import './Header.scss';
+
 const routes = [
   { path: "/",      label: "Home" },
   { path: "/blog",  label: "Blog" },

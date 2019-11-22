@@ -4,7 +4,8 @@ import { Subject, defer, concat, Observable, forkJoin, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
 import { IMarker, IBounds } from "wasm-marker-clusterer";
-import RenderIndicator from "./RenderIndicator";
+
+import './TestControls.scss';
 
 const COOLDOWN_WAIT_TIME = 300;
 const INITIAL_SPIRAL_STATE: ISpiralState = Object.freeze({

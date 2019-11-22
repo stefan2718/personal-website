@@ -1,0 +1,72 @@
+@import '../assets/scss/libs/skel';
+@import '../assets/scss/libs/vars';
+
+#main {
+  margin-left: $size-header-width;
+  max-width: 50em + $size-header-pad;
+  padding: ($size-header-pad * 2) $size-header-pad $size-header-pad $size-header-pad;
+  width: calc(100% - #{$size-header-width});
+
+  min-height: 100vh;
+
+  > section {
+    border-top: solid 2px _palette(border);
+    margin: $size-header-pad 0 0 0;
+    padding: $size-header-pad 0 0 0;
+
+    &:first-child {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0;
+    }
+  }
+}
+
+.mini-header {
+  #main {
+    margin-left: $mini-header-width;
+    width: calc(100% - #{$mini-header-width});
+    max-width: calc(100% - #{$mini-header-width});
+
+    .inner-main {
+      max-width: $main-content-width;
+      margin: auto;
+    }
+  }
+}
+
+@include breakpoint(large) {
+  #main {
+    margin-left: $size-header-width-large;
+    max-width: none;
+    padding: ($size-header-pad-large * 2) $size-header-pad-large $size-header-pad-large $size-header-pad-large;
+    width: calc(100% - #{$size-header-width-large});
+  }
+}
+
+@include breakpoint(medium) {
+  #main {
+    margin: 0;
+    padding: ($size-header-pad-medium * 1.5) $size-header-pad-medium;
+    width: 100%;
+  }
+  .mini-header {
+    #main {
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+}
+@include breakpoint(small) {
+  #main {
+    padding: ($size-header-pad-small * 1.5) $size-header-pad-small (($size-header-pad-small * 1.5) - _size(element-margin)) $size-header-pad-small;
+
+    > section {
+      margin: ($size-header-pad-small * 1.5) 0 0 0;
+      padding: ($size-header-pad-small * 1.5) 0 0 0;
+    }
+  }
+}
+@include breakpoint(xsmall) {
+}

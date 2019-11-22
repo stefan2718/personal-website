@@ -1,6 +1,7 @@
 import React from 'react'
 import Helmet from 'react-helmet'
 import '../assets/scss/main.scss'
+import './HomePageLayout.scss';
 
 import Header from './Header'
 import { IGatsbyProps } from '../util/interfaces';

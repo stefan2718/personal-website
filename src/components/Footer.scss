@@ -1,0 +1,137 @@
+@import '../assets/scss/libs/skel';
+@import '../assets/scss/libs/vars';
+@import '../assets/scss/libs/functions';
+
+#footer {
+  .icons {
+    margin: (_size(element-margin) * 0.5) 0 0 0;
+    li {
+      font-size: 2rem;
+    }
+
+    a {
+      color: _palette(accent2, fg-light);
+    }
+  }
+
+  .copyright {
+    color: _palette(accent2, fg-light);
+    font-size: 0.8em;
+    list-style: none;
+    margin: (_size(element-margin) * 0.5) 0 0 0;
+    padding: 0;
+
+    li {
+      border-left: solid 1px _palette(accent2, border);
+      display: inline-block;
+      line-height: 1em;
+      margin-left: 0.75em;
+      padding-left: 0.75em;
+
+      &:first-child {
+        border-left: 0;
+        margin-left: 0;
+        padding-left: 0;
+      }
+
+      a {
+        color: inherit;
+      }
+    }
+  }
+}
+.mini-header {
+  #footer {
+    .inner .copyright {
+      display: none;
+    }
+
+    ul.icons li {
+      display: block;
+      padding: 0.6em 0;
+      font-size: 1.7em;
+    }
+  }
+}
+
+@include breakpoint(large) {
+  #footer {
+    .copyright {
+      li {
+        border-left-width: 0;
+        display: block;
+        line-height: 2.25em;
+        margin-left: 0;
+        padding-left: 0;
+      }
+    }
+  }
+}
+
+@include breakpoint(medium) {
+  #footer {
+    bottom: auto;
+    left: auto;
+    padding: $size-header-pad-medium $size-header-pad-medium ($size-header-pad-medium * 1.5) $size-header-pad-medium;
+    position: relative;
+    text-align: center;
+    width: 100%;
+
+    .icons {
+      margin: 0 0 (_size(element-margin) * 0.5) 0;
+    }
+
+    .copyright {
+      margin: 0 0 (_size(element-margin) * 0.5) 0;
+
+      li {
+        border-left-width: 1px;
+        display: inline-block;
+        line-height: 1em;
+        margin-left: 0.75em;
+        padding-left: 0.75em;
+      }
+    }
+  }
+  .mini-header {
+    #footer {
+      padding: 0;
+      width: auto;
+      .inner .icons {
+        display: flex;
+        flex-direction: row;
+        margin: 0;
+        li {
+          padding: 0;
+          line-height: 1.8em;
+          margin-right: 2em;
+        }
+      }
+    }
+  }
+}
+
+@include breakpoint(small) {
+  #footer {
+    padding: $size-header-pad-small;
+  }
+  .mini-header {
+    #footer {
+      display: none;
+    }
+  }
+}
+
+@include breakpoint(xsmall) {
+  #footer {
+    .copyright {
+      li {
+        border-left-width: 0;
+        display: block;
+        line-height: 2.25em;
+        margin-left: 0;
+        padding-left: 0;
+      }
+    }
+  }
+}

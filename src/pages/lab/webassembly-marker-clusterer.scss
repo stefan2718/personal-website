@@ -1,0 +1,28 @@
+.wasm-lab {
+  main {
+    details summary {
+      cursor: pointer;
+    }
+
+    .map-controls {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      > * {
+        flex: auto;
+      }
+
+      .map-sync {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+      }
+    }
+    .point-comparison {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+
+    }
+  }
+}

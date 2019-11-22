@@ -3,6 +3,8 @@ import ClusteringStats from "./ClusteringStats";
 import { IMapWrapperProps } from "../../util/interfaces";
 import RenderIndicator from './RenderIndicator';
 
+import './MapWrapper.scss';
+
 export default function MapWrapper(props: IMapWrapperProps) {
   return (
     <span className="map-and-stats">

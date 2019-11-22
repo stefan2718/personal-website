@@ -1,0 +1,12 @@
+.test-controls {
+  .inputs {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+
+    input[type=number] {
+      max-width: 3.5em;
+    }
+  }
+}
