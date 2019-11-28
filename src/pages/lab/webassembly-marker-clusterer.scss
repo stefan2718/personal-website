@@ -1,3 +1,7 @@
+@import '../../assets/scss/libs/skel';
+@import '../../assets/scss/libs/vars';
+@import '../../assets/scss/libs/functions';
+
 .wasm-lab {
   main {
     details summary {
@@ -5,17 +9,28 @@
     }
 
     .map-controls {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
+      margin-bottom: 1em;
       > * {
         flex: auto;
+        padding: 1.5em 1em;
+        border-top: solid 2px _palette(border);
+        &:last-child {
+          border-bottom: solid 2px _palette(border);
+        }
       }
 
-      .map-sync {
+      .map-settings {
         display: flex;
-        justify-content: flex-end;
         align-items: center;
+        flex-wrap: wrap;
+
+        input[type=number] {
+          max-width: 3.5em;
+        }
+
+        > * {
+          padding-right: 2em;
+        }
       }
     }
     .point-comparison {

@@ -57,7 +57,6 @@ export interface ITestControlsState extends ITestControlsStateNumbers {
 }
 
 export interface ITestControlsStateNumbers {
-  gridSize: number;
   minZoom: number;
   maxZoom: number;
   maxPans: number;
@@ -84,7 +83,6 @@ export interface ITestControlsProps {
   setTestIsRunning: (testIsRunning: boolean) => void;
   setWasmMapState: (wasmMapState: IMapState) => void;
   setMcpMapState: (mcpMapState: IMapState) => void;
-  setGridSize: (gridSize: number) => void;
   wasmState: IMapTestState;
   mcpState: IMapTestState;
   bounds: IBounds;

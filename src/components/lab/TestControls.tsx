@@ -31,14 +31,13 @@ enum TestCompletionState {
 }
 
 const minMax: {[key in keyof ITestControlsStateNumbers] : {min: number, max: number}} = {
-  gridSize: { min: 10, max: 400 },
   minZoom: { min: 1, max: 19 },
   maxZoom: { min: 1, max: 19 },
   maxPans: { min: 1, max: 100 },
   runs: { min: 1, max: 100 },
 }
 
-const numKeys: (keyof ITestControlsStateNumbers)[] = ["runs", "maxPans", "minZoom", "maxZoom", "gridSize"];
+const numKeys: (keyof ITestControlsStateNumbers)[] = [ "runs", "maxPans", "minZoom", "maxZoom" ];
 
 const isNumKey = (key: string): key is keyof ITestControlsStateNumbers => {
   return numKeys.includes(key as any);
@@ -53,7 +52,6 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   constructor(props: ITestControlsProps) {
     super(props);
     this.state = {
-      gridSize: 60,
       minZoom: 7,
       maxZoom: 14,
       maxPans: 5,
@@ -78,9 +76,6 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
         let value = Number(event.target.value);
         value = value > minMax[id].max ? minMax[id].max : value < minMax[id].min ? minMax[id].min : value;
         this.setState({ [id]: value } as { [key in keyof ITestControlsStateNumbers]: number });
-        if (id === "gridSize") {
-          this.props.setGridSize(value);
-        }
       }
     }
   }
@@ -304,21 +299,18 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   render() {
     return (
       <div className="test-controls">
-        <h4>Automated Performance Test</h4>
+        <h4>Automated Test Settings</h4>
         <div className="inputs">
-          <label htmlFor="gridSize">Grid Size<br/>
-            <input step="10" id="gridSize" type="number" min={minMax["gridSize"].min} max={minMax["gridSize"].max} disabled={this.state.running} value={this.state.gridSize} onChange={this.onNumberChange}/>
-          </label>
-          <label htmlFor="minZoom">Min zoom<br/>
+          <label htmlFor="minZoom" title="The most zoomed out level, where the test will start">Min zoom<br/>
             <input id="minZoom" type="number" min={minMax["minZoom"].min} max={minMax["minZoom"].max} disabled={this.state.running} value={this.state.minZoom} onChange={this.onNumberChange}/>
           </label>
-          <label htmlFor="maxZoom">Max zoom<br/>
+          <label htmlFor="maxZoom" title="The most zoomed in level, where the test will end">Max zoom<br/>
             <input id="maxZoom" type="number" min={minMax["maxZoom"].min} max={minMax["maxZoom"].max} disabled={this.state.running} value={this.state.maxZoom} onChange={this.onNumberChange}/>
           </label>
-          <label htmlFor="runs">Runs<br/>
+          <label htmlFor="runs" title="How many iterations going from minZoom to maxZoom">Runs<br/>
             <input id="runs" type="number" min={minMax["runs"].min} max={minMax["runs"].max} disabled={this.state.running} value={this.state.runs} onChange={this.onNumberChange}/>
           </label>
-          <label htmlFor="maxPans">Max pans per zoom<br/>
+          <label htmlFor="maxPans" title="How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level">Max pans per zoom<br/>
             <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
           </label>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>

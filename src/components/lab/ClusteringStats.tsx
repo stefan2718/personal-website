@@ -1,6 +1,8 @@
 import React from "react"
 import { IClustererStats, IMapState } from "../../util/interfaces";
 
+import './ClusteringStats.scss';
+
 const COORD_ROUND = 10000000;
 
 class ClusteringStats extends React.PureComponent<IClustererStats & { comparisonTime: number } & IMapState> {
@@ -14,14 +16,6 @@ class ClusteringStats extends React.PureComponent<IClustererStats & { comparison
     return (
       <React.Fragment>
         <ul className="stats">
-          <li><span>
-            <span>Clusters created: </span>
-            <span className="stat-value">{this.props.clusterCount}</span>
-          </span></li>
-          <li><span>
-            <span>Markers clustered: </span>
-            <span className="stat-value">{this.props.markerCount}</span>
-          </span></li>
           <li><span>
             <span>Speed comparison</span>
             <span className="stat-value" style={compStyles}>{ !!comparison ? `${comparison}x` : '...waiting'}</span>
@@ -38,6 +32,14 @@ class ClusteringStats extends React.PureComponent<IClustererStats & { comparison
         <details className="stats">
           <summary>Map state</summary>
           <ul>
+            <li><span>
+              <span>Clusters created: </span>
+              <span className="stat-value">{this.props.clusterCount}</span>
+            </span></li>
+            <li><span>
+              <span>Markers clustered: </span>
+              <span className="stat-value">{this.props.markerCount}</span>
+            </span></li>
             <li><span>
               <span>Zoom: </span>
               <span className="stat-value">{this.props.zoom} </span>

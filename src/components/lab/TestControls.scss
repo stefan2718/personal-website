@@ -2,11 +2,16 @@
   .inputs {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    flex-wrap: wrap;
     align-items: center;
 
-    input[type=number] {
-      max-width: 3.5em;
+    label {
+      padding: 0 2em;
+
+      input[type=number] {
+        max-width: 3.5em;
+      }
     }
+
   }
 }

@@ -34,22 +34,6 @@
 		height: 350px;
 	}
 
-  .stats {
-    max-width: 16em;
-    margin: 0 auto 1em auto;
-    li span {
-      display: flex;
-      flex-direction: row;
-      align-content: space-between;
-      span {
-        flex-basis: 100%;
-        &.stat-value {
-          flex-basis: 0;
-        }
-      }
-    }
-  }
-  
   details > pre {
     overflow: auto;
   }

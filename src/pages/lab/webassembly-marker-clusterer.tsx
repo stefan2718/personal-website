@@ -24,6 +24,9 @@ const torontoPoints = (pointData as string[]).map(pointStr => {
   return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
 })
 
+const gridSizeMax = 400;
+const gridSizeMin = 10;
+
 export default function Clusterer(props: IGatsbyProps) {
   let [gridSize, setGridSize] = useState(60);
   let [syncMap, setSyncMap] = useState(true);
@@ -57,6 +60,13 @@ export default function Clusterer(props: IGatsbyProps) {
     }
   }
 
+  const setGridSizeInBound = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event && event.target) {
+      let value = Number(event.target.value);
+      setGridSize(value > gridSizeMax ? gridSizeMax : value < gridSizeMin ? gridSizeMin : value);
+    }
+  }
+
   const changeShowIndicator = (event: React.ChangeEvent<HTMLInputElement>) => setShowIndicator(event.target.checked)
   const getMapState = (type: MapType): IMapState => type === "wasm" ? wasmMapState : mcpMapState;
 
@@ -80,7 +90,6 @@ export default function Clusterer(props: IGatsbyProps) {
           <main>
             <div className="map-controls">
               <TestControls
-                setGridSize={setGridSize}
                 getMapState={getMapState}
                 setSyncMap={setSyncMap}
                 setTestIsRunning={setTestIsRunning}
@@ -91,10 +100,20 @@ export default function Clusterer(props: IGatsbyProps) {
                 mcpState={mcpMapTestState}
                 />
               <div className="map-sync">
-                <input id="syncMap" name="syncMap" type="checkbox" disabled={testIsRunning} checked={syncMap} onChange={changeSyncMap}/>
-                <label htmlFor="syncMap">Synchronize map state</label>
-                <input id="showIndicator" name="showIndicator" type="checkbox" checked={showIndicator} onChange={changeShowIndicator}/>
-                <label htmlFor="showIndicator">Show rendering indicator</label>
+                <h4>Map Settings</h4>
+                <div className="map-settings">
+                  <label htmlFor="gridSize" title="How many pixels make up the length and width of each clusters area">Grid Size<br/>
+                    <input step="10" id="gridSize" type="number" min={gridSizeMin} max={gridSizeMax} disabled={testIsRunning} value={gridSize} onChange={setGridSizeInBound}/>
+                  </label>
+                  <span title="Moving one map will cause the other map to follow">
+                    <input id="syncMap" name="syncMap" type="checkbox" disabled={testIsRunning} checked={syncMap} onChange={changeSyncMap}/>
+                    <label htmlFor="syncMap">Synchronize map state</label>
+                  </span>
+                  <span title="This enables a javascript-animated element that demonstrates when heavy computation is occuring on the main thread. The element will stop moving or stutter when this happens.">
+                    <input id="showIndicator" name="showIndicator" type="checkbox" checked={showIndicator} onChange={changeShowIndicator}/>
+                    <label htmlFor="showIndicator">Show rendering indicator</label>
+                  </span>
+                </div>
               </div>
             </div>
             <div className="point-comparison">
