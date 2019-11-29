@@ -1,0 +1,9 @@
+{
+  "gridSize": 60,
+  "minZoom": 7,
+  "maxZoom": 14,
+  "maxPans": 4,
+  "runs": 3,
+  "mcpResults": [{}],
+  "wasmResults": [{}]
+}

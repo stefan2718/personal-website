@@ -15,16 +15,47 @@ plugins:
 
 provider:
   name: aws
+  profile: serverless
+  region: ca-central-1
   runtime: nodejs12.x
+  endpointType: edge
+  logRetentionInDays: 14
   apiGateway:
     minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    LAB_WASM_TABLE: labWasmTable
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.LAB_WASM_TABLE}"
 
 functions:
-  hello:
-    handler: handler.hello
+  putTestData:
+    handler: handler.putTestData
     events:
       - http:
-          method: get
-          path: hello
+          method: post
+          path: lab/wasm-marker-clusterer/test
+          # cors: true
+
+resources: # CloudFormation template syntax from here on.
+  Resources:
+    labWasmTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.LAB_WASM_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userAgent
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: userAgent
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 10
