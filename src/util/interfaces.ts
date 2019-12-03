@@ -54,6 +54,7 @@ export interface IBlogSummary {
 
 export interface ITestControlsState extends ITestControlsStateNumbers {
   running: boolean;
+  submitResults: boolean;
 }
 
 export interface ITestControlsStateNumbers {
@@ -83,6 +84,7 @@ export interface ITestControlsProps {
   setTestIsRunning: (testIsRunning: boolean) => void;
   setWasmMapState: (wasmMapState: IMapState) => void;
   setMcpMapState: (mcpMapState: IMapState) => void;
+  gridSize: number;
   wasmState: IMapTestState;
   mcpState: IMapTestState;
   bounds: IBounds;

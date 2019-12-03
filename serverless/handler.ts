@@ -7,9 +7,14 @@ import uuidV4 from 'uuid/v4';
 
 const dynamoDb = new DynamoDB.DocumentClient();
 
+const headers = {
+  'Access-Control-Allow-Origin': '*', // Required for CORS support to work
+};
+
 export const putTestData: APIGatewayProxyHandler = (event, _context, callback) => {
   if (!event || !event.body || typeof event.body !== "string") {
     return callback(null, {
+      headers,
       statusCode: 400,
       body: "Request is missing body"
     });
@@ -18,11 +23,17 @@ export const putTestData: APIGatewayProxyHandler = (event, _context, callback) =
   try {
     data = JSON.parse(event.body) as WasmTestRequest;
   } catch (err) {
-    return callback(err);
+    console.error(err);
+    return callback(null, {
+      headers,
+      statusCode: 400,
+      body: "JSON body could not be parsed correctly",
+    });
   }
 
   if (!data.mcpResults || !data.wasmResults || !data.mcpResults.length || !data.wasmResults.length) {
     return callback(null, {
+      headers,
       statusCode: 400,
       body: "Request body was missing some required data.",
     });
@@ -39,13 +50,18 @@ export const putTestData: APIGatewayProxyHandler = (event, _context, callback) =
     Item: item,
   };
 
-  dynamoDb.put(putItem, (err, data) => {
+  dynamoDb.put(putItem, (err, _data) => {
     if (err) {
       console.error(err);
-      return callback(err);
+      return callback(null, {
+        headers,
+        statusCode: 500,
+        body: err.message,
+      });
     }
 
     return callback(null, {
+      headers,
       statusCode: 200,
       body: null,
     });

@@ -4,6 +4,7 @@ import { Subject, defer, concat, Observable, forkJoin, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
 import { IMarker, IBounds } from "wasm-marker-clusterer";
+import { WasmTestRequest } from "../../../shared/shared";
 
 import './TestControls.scss';
 
@@ -57,6 +58,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       maxPans: 5,
       runs: 1,
       running: false,
+      submitResults: true,
     }
   }
 
@@ -104,14 +106,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           this.setMapStateAndWaitForResults("wasm", this.wasmState, testState.mapState),
           this.setMapStateAndWaitForResults("mcp", this.mcpState, testState.mapState)
         ).pipe(
-          reduce((acc, curr) => {
-            if (curr.key === "mcp") {
-              acc.mcpResults[testState.currentIndex].push(this.summarizeTestResults(curr.state));
-            } else {
-              acc.wasmResults[testState.currentIndex].push(this.summarizeTestResults(curr.state));
-            }
-            return acc;
-          }, testState)
+          reduce(this.getTestReducerFn(testState), testState)
         )
       ),
       map(testState => ({ testState, completion: this.getTestCompletionState(testState, maxZoom) })),
@@ -141,6 +136,15 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       this.centerMapHere.next(initialTestState);
     }
   }
+
+  getTestReducerFn = (testState: ITestResults) => (acc: ITestResults, curr: IKeyedMapTestState) => {
+    if (curr.key === "mcp") {
+      acc.mcpResults[testState.currentIndex].push(this.summarizeTestResults(curr.state));
+    } else {
+      acc.wasmResults[testState.currentIndex].push(this.summarizeTestResults(curr.state));
+    }
+    return acc;
+  };
 
   getTestCompletionState = (testState: ITestResults, maxZoom: number): TestCompletionState => {
     let wasmZoomResults = testState.wasmResults[testState.currentIndex];
@@ -195,6 +199,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     if (wasmResults.length !== mcpResults.length) {
       throw new Error(`Length of Wasm results (${wasmResults.length}) not equal to MCP results (${mcpResults.length})`);
     }
+    if (this.state.submitResults) {
+      this.postTestResults(wasmResults, mcpResults);
+    }
+
     mcpResults.forEach((_, i) => {
       if (mcpResults[i].newMarkersClustered === wasmResults[i].newMarkersClustered && mcpResults[i].clusterCount === wasmResults[i].clusterCount) {
         totalResults.push({
@@ -222,6 +230,28 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
         `${row.mcpClusterTime  ? this.round(row.mcpClusterTime)  : ''}`)
         .join('\n')
     );
+  }
+
+  postTestResults = async (wasmResults: ITestSummary[], mcpResults: ITestSummary[]) => {
+    const body: WasmTestRequest = {
+      wasmResults,
+      mcpResults,
+      gridSize: this.props.gridSize,
+      maxPans: this.state.maxPans,
+      maxZoom: this.state.maxZoom,
+      minZoom: this.state.minZoom,
+      runs: this.state.runs,
+    };
+    const response = await fetch(`${process.env.API_ENDPOINT}/lab/wasm-marker-clusterer/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      let text = await response.text();
+      console.error(`Sending test data failed with ${response.status}.\n${text}`);
+    }
   }
 
   flattenTestResults = (results: ITestSummary[][]): ITestSummary[] => {
@@ -296,6 +326,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     }
   }
 
+  setBoolean = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ submitResults: event.target.checked });
+  }
+
   render() {
     return (
       <div className="test-controls">
@@ -313,6 +347,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           <label htmlFor="maxPans" title="How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level">Max pans per zoom<br/>
             <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
           </label>
+          <span title="If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.">
+            <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={this.setBoolean}/>
+            <label htmlFor="submitResults">Submit results</label>
+          </span>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
         </div>
       </div>

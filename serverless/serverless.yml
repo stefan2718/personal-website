@@ -20,6 +20,7 @@ provider:
   runtime: nodejs12.x
   endpointType: edge
   logRetentionInDays: 14
+  memorySize: 256
   apiGateway:
     minimumCompressionSize: 1024 # Enable gzip compression for responses > 1 KB
   environment:
@@ -38,7 +39,18 @@ functions:
       - http:
           method: post
           path: lab/wasm-marker-clusterer/test
-          # cors: true
+          cors:
+            # TODO make this stricter
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: false
+            cacheControl: 'max-age=600, s-maxage=600, proxy-revalidate'
 
 resources: # CloudFormation template syntax from here on.
   Resources:
