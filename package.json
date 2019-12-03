@@ -1,7 +1,7 @@
 {
   "name": "stefans-website",
   "description": "Where I put stuff.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": "Stefan Battiston",
   "dependencies": {
     "eslint-config-react-app": "^3.0.8",
