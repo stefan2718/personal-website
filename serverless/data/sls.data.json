@@ -1,0 +1,6 @@
+{
+  "body": "{\"gridSize\": 60,\"minZoom\": 7,\"maxZoom\": 14,\"maxPans\": 4,\"runs\": 3,\"mcpResults\": [{}],\"wasmResults\": [{}]}",
+  "headers": {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:70.0) Gecko/20100101 Firefox/70.0"
+  }
+}

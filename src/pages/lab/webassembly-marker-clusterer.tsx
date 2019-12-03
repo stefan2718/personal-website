@@ -91,6 +91,7 @@ export default function Clusterer(props: IGatsbyProps) {
             <div className="map-controls">
               <TestControls
                 getMapState={getMapState}
+                gridSize={gridSize}
                 setSyncMap={setSyncMap}
                 setTestIsRunning={setTestIsRunning}
                 setMcpMapState={setMcpMapState}
@@ -107,7 +108,7 @@ export default function Clusterer(props: IGatsbyProps) {
                   </label>
                   <span title="Moving one map will cause the other map to follow">
                     <input id="syncMap" name="syncMap" type="checkbox" disabled={testIsRunning} checked={syncMap} onChange={changeSyncMap}/>
-                    <label htmlFor="syncMap">Synchronize map state</label>
+                    <label htmlFor="syncMap">Synchronize maps</label>
                   </span>
                   <span title="This enables a javascript-animated element that demonstrates when heavy computation is occuring on the main thread. The element will stop moving or stutter when this happens.">
                     <input id="showIndicator" name="showIndicator" type="checkbox" checked={showIndicator} onChange={changeShowIndicator}/>
