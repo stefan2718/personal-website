@@ -55,6 +55,7 @@ export interface IBlogSummary {
 export interface ITestControlsState extends ITestControlsStateNumbers {
   running: boolean;
   submitResults: boolean;
+  showModal: boolean;
 }
 
 export interface ITestControlsStateNumbers {
@@ -147,4 +148,12 @@ export interface IMapProps {
   gridSize: number;
   renderIndicatorPercent: number;
   showIndicator: boolean;
+}
+
+export interface IGraphProps {
+
+}
+
+export interface IModalProps {
+  open: boolean;
 }

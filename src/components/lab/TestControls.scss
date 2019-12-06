@@ -1,3 +1,8 @@
+@import '../../assets/scss/libs/skel';
+@import '../../assets/scss/libs/vars';
+@import '../../assets/scss/libs/functions';
+@import '../../assets/scss/libs/breakpoints';
+
 .test-controls {
   .inputs {
     display: flex;
@@ -13,5 +18,24 @@
       }
     }
 
+  }
+}
+
+.graph-modal {
+  background-color: white;
+  width: 95%;
+  max-width: 50em;
+  height: 70vh;
+  max-height: 35em;
+  border: solid 3px _palette(border);
+  margin: 15vh auto;
+  outline: 0;
+  border-radius: 6px;
+  position: relative;
+
+  button.close {
+    position: absolute;
+    bottom: 1.5em;
+    right: 2em;
   }
 }

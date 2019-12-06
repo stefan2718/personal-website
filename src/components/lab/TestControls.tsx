@@ -5,6 +5,7 @@ import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE } from "../../util/constants";
 import { IMarker, IBounds } from "wasm-marker-clusterer";
 import { WasmTestRequest } from "../../../shared/shared";
+import ReactModal from 'react-modal';
 
 import './TestControls.scss';
 
@@ -44,6 +45,8 @@ const isNumKey = (key: string): key is keyof ITestControlsStateNumbers => {
   return numKeys.includes(key as any);
 }
 
+ReactModal.setAppElement('#___gatsby');
+
 class TestControls extends React.Component<ITestControlsProps, ITestControlsState> {
 
   wasmState: Subject<IMapTestState> = new Subject();
@@ -59,6 +62,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       runs: 1,
       running: false,
       submitResults: true,
+      showModal: false,
     }
   }
 
@@ -352,6 +356,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
             <label htmlFor="submitResults">Submit results</label>
           </span>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
+          <button className="button" onClick={() => this.setState({ showModal: !this.state.showModal })}>Toggle modal</button>
+          <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.setState({ showModal: false })} className="graph-modal">
+            <button className="button close" onClick={() => this.setState({ showModal: false })}>Close</button>
+          </ReactModal>
         </div>
       </div>
     )

@@ -45,7 +45,9 @@ exports.createPages = ({ actions, graphql }) => {
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
   actions.setWebpackConfig({
     plugins: [
-      new WorkerPlugin(),
+      new WorkerPlugin({
+        globalObject: false
+      }),
     ]
   })
   if (stage === "build-html") {
