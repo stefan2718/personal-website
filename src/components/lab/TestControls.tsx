@@ -8,6 +8,8 @@ import { WasmTestRequest } from "../../../shared/shared";
 import ReactModal from 'react-modal';
 
 import './TestControls.scss';
+import { Graph } from "./Graph";
+import { combineTestResults } from "../../util/helpers";
 
 const COOLDOWN_WAIT_TIME = 300;
 const INITIAL_SPIRAL_STATE: ISpiralState = Object.freeze({
@@ -63,6 +65,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       running: false,
       submitResults: true,
       showModal: false,
+      latestMcpResults: [{"clusterTime":1643,"markerCount":10000,"clusterCount":1,"newMarkersClustered":10000},{"clusterTime":1096,"markerCount":10000,"clusterCount":6,"newMarkersClustered":10000},{"clusterTime":900,"markerCount":10000,"clusterCount":16,"newMarkersClustered":10000}],
+      latestWasmResults: [{"clusterTime":790,"markerCount":10000,"clusterCount":1,"newMarkersClustered":10000},{"clusterTime":252,"markerCount":10000,"clusterCount":6,"newMarkersClustered":10000},{"clusterTime":185,"markerCount":10000,"clusterCount":16,"newMarkersClustered":10000}],
     }
   }
 
@@ -199,7 +203,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   resultsToData = (results: ITestResults) => {
     let wasmResults = this.flattenTestResults(results.wasmResults);
     let mcpResults = this.flattenTestResults(results.mcpResults);
-    let totalResults: ICombinedResult[] = [];
+
     if (wasmResults.length !== mcpResults.length) {
       throw new Error(`Length of Wasm results (${wasmResults.length}) not equal to MCP results (${mcpResults.length})`);
     }
@@ -207,27 +211,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       this.postTestResults(wasmResults, mcpResults);
     }
 
-    mcpResults.forEach((_, i) => {
-      if (mcpResults[i].newMarkersClustered === wasmResults[i].newMarkersClustered && mcpResults[i].clusterCount === wasmResults[i].clusterCount) {
-        totalResults.push({
-          clusterCount: mcpResults[i].clusterCount,
-          newMarkersClustered: mcpResults[i].newMarkersClustered,
-          mcpClusterTime: mcpResults[i].clusterTime,
-          wasmClusterTime: wasmResults[i].clusterTime,
-        });
-      } else {
-        totalResults.push({
-          clusterCount: mcpResults[i].clusterCount,
-          newMarkersClustered: mcpResults[i].newMarkersClustered,
-          mcpClusterTime: mcpResults[i].clusterTime,
-        });
-        totalResults.push({
-          clusterCount: wasmResults[i].clusterCount,
-          newMarkersClustered: wasmResults[i].newMarkersClustered,
-          wasmClusterTime: wasmResults[i].clusterTime,
-        });
-      }
-    });
+    let totalResults = combineTestResults(mcpResults, wasmResults);
+
     console.log('New Markers Clustered, Clusters, Wasm Cluster Time, MCP Cluster Time\n' +
       totalResults.map(row => `${row.newMarkersClustered},${row.clusterCount},` +
         `${row.wasmClusterTime ? this.round(row.wasmClusterTime) : ''},` +
@@ -358,6 +343,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
           <button className="button" onClick={() => this.setState({ showModal: !this.state.showModal })}>Toggle modal</button>
           <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.setState({ showModal: false })} className="graph-modal">
+            <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
             <button className="button close" onClick={() => this.setState({ showModal: false })}>Close</button>
           </ReactModal>
         </div>

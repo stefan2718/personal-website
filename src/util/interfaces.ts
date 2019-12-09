@@ -56,6 +56,8 @@ export interface ITestControlsState extends ITestControlsStateNumbers {
   running: boolean;
   submitResults: boolean;
   showModal: boolean;
+  latestWasmResults: ITestSummary[];
+  latestMcpResults: ITestSummary[];
 }
 
 export interface ITestControlsStateNumbers {
@@ -151,7 +153,8 @@ export interface IMapProps {
 }
 
 export interface IGraphProps {
-
+  latestWasmResults: ITestSummary[];
+  latestMcpResults: ITestSummary[];
 }
 
 export interface IModalProps {
