@@ -211,6 +211,12 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       this.postTestResults(wasmResults, mcpResults);
     }
 
+    this.setState({
+      latestMcpResults: mcpResults,
+      latestWasmResults: wasmResults,
+      showModal: true,
+    });
+
     let totalResults = combineTestResults(mcpResults, wasmResults);
 
     console.log('New Markers Clustered, Clusters, Wasm Cluster Time, MCP Cluster Time\n' +
@@ -341,7 +347,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
             <label htmlFor="submitResults">Submit results</label>
           </span>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
-          <button className="button" onClick={() => this.setState({ showModal: !this.state.showModal })}>Toggle modal</button>
+          {/* <button className="button" onClick={() => this.setState({ showModal: !this.state.showModal })}>Toggle modal</button> */}
           <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.setState({ showModal: false })} className="graph-modal">
             <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
             <button className="button close" onClick={() => this.setState({ showModal: false })}>Close</button>

@@ -1,0 +1,40 @@
+.graph-wrapper {
+  height: 100%;
+
+  table {
+    margin: 0 0 0 5em;
+    tr {
+      &.mcp {
+        color: red;
+      }
+      &.wasm, .wasm {
+        color: blue;
+      }
+    }
+
+    td, th {
+      padding: 0 1em;
+      text-align: right;
+
+      &.graph-r {
+        text-align: center;
+      }
+
+      .division {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .divisor {
+          padding-right: 5px;
+          > div {
+            line-height: 1.2em;
+          }
+          > :first-child {
+            border-bottom: 1px solid black;
+          }
+        }
+      }
+    }
+  }
+}

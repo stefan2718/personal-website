@@ -1,6 +1,6 @@
 import React from 'react';
-import { IGraphProps, ITestSummary, ICombinedResult, MapType } from '../../util/interfaces';
-import { ResponsiveContainer, ScatterChart, XAxis, YAxis, Scatter, ComposedChart, Line } from "recharts";
+import { IGraphProps, ITestSummary, MapType } from '../../util/interfaces';
+import { ResponsiveContainer, XAxis, YAxis, Scatter, ComposedChart, Line, Dot, Legend } from "recharts";
 
 import './Graph.scss';
 import { combineTestResults } from '../../util/helpers';
@@ -32,36 +32,80 @@ const getBestFitLinePoints = (results: Partial<ITestSummary>[], key: MapType) =>
   let m = getSlope(results, xMean, yMean);
   let b = yMean - (m * xMean);
   let maxX = getMaxX(results);
-  return [
-    {
-      [`${key}Slope`]: 0, 
-      newMarkersClustered: -b/m
-    },
-    {
-      [`${key}Slope`]: (m * maxX + b), 
-      newMarkersClustered: maxX
-    }
-  ];
+
+  // calculate R^2
+  let ss_tot = results.reduce((acc, curr) => acc + Math.pow(curr.clusterTime - yMean, 2), 0);
+  let ss_res = results.reduce((acc, curr) => acc + Math.pow(curr.clusterTime - (m * curr.newMarkersClustered + b), 2), 0);
+  return {
+    r: 1 - (ss_res / ss_tot),
+    m: m,
+    plus: b > 0 ? "+" : "-",
+    b: b > 0 ? b : -b,
+    points: [
+      {
+        [key]: 0,
+        newMarkersClustered: -b/m
+      },
+      {
+        [key]: (m * maxX + b),
+        newMarkersClustered: maxX
+      }
+    ]
+  };
 }
 
 export const Graph: React.FC<IGraphProps> = (props) => {
   let mcpData = divideResultsPerCluster(props.latestMcpResults);
   let wasmData = divideResultsPerCluster(props.latestWasmResults);
   let data = combineTestResults(mcpData, wasmData);
-  (data as any).push(...getBestFitLinePoints(mcpData, 'mcp'));
-  (data as any).push(...getBestFitLinePoints(wasmData, 'wasm'));
-  console.log(JSON.stringify(data));
+  let mcpLine = getBestFitLinePoints(mcpData, 'mcp');
+  let wasmLine = getBestFitLinePoints(wasmData, 'wasm');
+  (data as any[]).push(...mcpLine.points);
+  (data as any[]).push(...wasmLine.points);
 
   return (
-    <ResponsiveContainer className="graph-wrapper" width="100%" height="90%" >
-      <ComposedChart data={data} margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
-        <XAxis dataKey="newMarkersClustered" name="New markers per cluster" type="number"/>
-        <YAxis name="Cluster time per cluster" unit="ms" type="number"/>
-        <Scatter name="MCP" dataKey="mcpClusterTime" fill="red"/>
-        <Scatter name="Wasm" dataKey="wasmClusterTime" fill="blue"/>
-        <Line dataKey="wasmSlope" stroke="blue" dot={false}/>
-        <Line dataKey="mcpSlope" stroke="red" dot={false}/>
-      </ComposedChart>
-    </ResponsiveContainer>
+    <div className="graph-wrapper">
+      <ResponsiveContainer height="75%">
+        <ComposedChart data={data} margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
+          <Legend verticalAlign="top"/>
+          <XAxis dataKey="newMarkersClustered" label={{ value: "New markers clustered (per cluster)", position: "bottom" }}
+            type="number" domain={[0, 'dataMax']} allowDecimals={false} allowDataOverflow={true} padding={{ right: 10, left: 0}}/>
+          <YAxis label={{ value: "Cluster time (per cluster)", angle: -90, position: "left" }} unit="ms" type="number"/>
+          <Scatter name="MCP" dataKey="mcpClusterTime" fill="red" shape={<Dot r={2}/>}/>
+          <Scatter name="Wasm" dataKey="wasmClusterTime" fill="blue" shape={<Dot r={2}/>}/>
+          <Line dataKey="wasm" stroke="blue" dot={false} legendType="none" strokeWidth="2"/>
+          <Line dataKey="mcp" stroke="red" dot={false} legendType="none" strokeWidth="2"/>
+        </ComposedChart>
+      </ResponsiveContainer>
+      <table>
+        <tbody>
+          <tr>
+            <th></th>
+            <th>Line of best fit</th>
+            <th>Goodness of fit (R<sup>2</sup>)</th>
+            <th style={{ textAlign: "left", paddingLeft: "2em"}}>Comparison</th>
+          </tr>
+          <tr className="mcp">
+            <td>MCP</td>
+            <td>{`y = ${String(mcpLine.m).substr(0, 6)}x ${mcpLine.plus} ${String(mcpLine.b).substr(0, 6)}`}</td>
+            <td className="graph-r">{String(mcpLine.r).substr(0,5)}</td>
+            <td rowSpan={2}>
+              <div className="division">
+                <span className="divisor">
+                  <div>{String(mcpLine.m).substr(0, 6)}</div>
+                  <div className="wasm">{String(wasmLine.m).substr(0, 6)}</div>
+                </span>
+                <span style={{ color: "black" }}>= {String(mcpLine.m/wasmLine.m).substr(0,4)}x &nbsp; Wasm speedup</span>
+              </div>
+            </td>
+          </tr>
+          <tr className="wasm">
+            <td>Wasm</td>
+            <td>{`y = ${String(wasmLine.m).substr(0, 6)}x ${wasmLine.plus} ${String(wasmLine.b).substr(0, 6)}`}</td>
+            <td className="graph-r">{String(wasmLine.r).substr(0,5)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   )
 }
