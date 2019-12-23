@@ -52,12 +52,16 @@ export interface IBlogSummary {
   excerpt: string;
 }
 
-export interface ITestControlsState extends ITestControlsStateNumbers {
+export interface ITestControlsState extends ITestControlsStateNumbers, ITestControlsStateBooleans {
+  latestWasmResults: ILocalResults;
+  latestMcpResults: ILocalResults;
+}
+
+export interface ITestControlsStateBooleans {
   running: boolean;
   submitResults: boolean;
+  saveLocally: boolean;
   showModal: boolean;
-  latestWasmResults: ITestSummary[];
-  latestMcpResults: ITestSummary[];
 }
 
 export interface ITestControlsStateNumbers {
@@ -153,10 +157,15 @@ export interface IMapProps {
 }
 
 export interface IGraphProps {
-  latestWasmResults: ITestSummary[];
-  latestMcpResults: ITestSummary[];
+  latestWasmResults: ILocalResults;
+  latestMcpResults: ILocalResults;
 }
 
 export interface IModalProps {
   open: boolean;
+}
+
+export interface ILocalResults {
+  timestamp: number;
+  results: ITestSummary[];
 }

@@ -1,8 +1,8 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult, ITestControlsStateNumbers } from "../../util/interfaces";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult, ITestControlsStateNumbers, ITestControlsStateBooleans, ILocalResults } from "../../util/interfaces";
 import { Subject, defer, concat, Observable, forkJoin, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
-import { INTIAL_MAP_STATE } from "../../util/constants";
+import { INTIAL_MAP_STATE, LOCAL_RESULTS_KEY_MCP, LOCAL_RESULTS_KEY_WASM } from "../../util/constants";
 import { IMarker, IBounds } from "wasm-marker-clusterer";
 import { WasmTestRequest } from "../../../shared/shared";
 import ReactModal from 'react-modal';
@@ -57,6 +57,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
 
   constructor(props: ITestControlsProps) {
     super(props);
+    const timestamp = Date.now();
     this.state = {
       minZoom: 7,
       maxZoom: 14,
@@ -64,9 +65,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       runs: 1,
       running: false,
       submitResults: true,
+      saveLocally: true,
       showModal: false,
-      latestMcpResults: [{"clusterTime":1643,"markerCount":10000,"clusterCount":1,"newMarkersClustered":10000},{"clusterTime":1096,"markerCount":10000,"clusterCount":6,"newMarkersClustered":10000},{"clusterTime":900,"markerCount":10000,"clusterCount":16,"newMarkersClustered":10000}],
-      latestWasmResults: [{"clusterTime":790,"markerCount":10000,"clusterCount":1,"newMarkersClustered":10000},{"clusterTime":252,"markerCount":10000,"clusterCount":6,"newMarkersClustered":10000},{"clusterTime":185,"markerCount":10000,"clusterCount":16,"newMarkersClustered":10000}],
+      latestMcpResults: { results: [], timestamp },
+      latestWasmResults: { results: [], timestamp },
     }
   }
 
@@ -208,12 +210,18 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       throw new Error(`Length of Wasm results (${wasmResults.length}) not equal to MCP results (${mcpResults.length})`);
     }
     if (this.state.submitResults) {
-      this.postTestResults(wasmResults, mcpResults);
+      this.postTestResults(mcpResults, wasmResults);
+    }
+
+    const timestamp = Date.now();
+    if (this.state.saveLocally) {
+      this.saveResultsLocally(mcpResults, LOCAL_RESULTS_KEY_MCP, timestamp);
+      this.saveResultsLocally(wasmResults, LOCAL_RESULTS_KEY_WASM, timestamp);
     }
 
     this.setState({
-      latestMcpResults: mcpResults,
-      latestWasmResults: wasmResults,
+      latestMcpResults: { results: mcpResults, timestamp },
+      latestWasmResults: { results: wasmResults, timestamp },
       showModal: true,
     });
 
@@ -227,7 +235,16 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     );
   }
 
-  postTestResults = async (wasmResults: ITestSummary[], mcpResults: ITestSummary[]) => {
+  saveResultsLocally = (results: ITestSummary[], key: string, timestamp: number) => {
+    const prevStore = localStorage.getItem(key);
+    let prev: ILocalResults[] = [];
+    if (prevStore) {
+      prev = JSON.parse(prevStore) as ILocalResults[];
+    }
+    localStorage.setItem(key, JSON.stringify(prev.concat({ results, timestamp })));
+  }
+
+  postTestResults = async (mcpResults: ITestSummary[], wasmResults: ITestSummary[]) => {
     const body: WasmTestRequest = {
       wasmResults,
       mcpResults,
@@ -321,8 +338,8 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     }
   }
 
-  setBoolean = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ submitResults: event.target.checked });
+  setBoolean(event: React.ChangeEvent<HTMLInputElement>, key: keyof ITestControlsStateBooleans) {
+    this.setState({ [key]: event.target.checked } as { [key in keyof ITestControlsStateBooleans]: boolean });
   }
 
   render() {
@@ -343,11 +360,15 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
             <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
           </label>
           <span title="If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.">
-            <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={this.setBoolean}/>
+            <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={e => this.setBoolean(e, "submitResults")}/>
             <label htmlFor="submitResults">Submit results</label>
           </span>
+          <span title="Save the results of this test locally on this device, so you can view multiple tests in aggregate.">
+            <input id="saveLocally" name="saveLocally" type="checkbox" checked={this.state.saveLocally} onChange={e => this.setBoolean(e, "saveLocally")}/>
+            <label htmlFor="saveLocally">Save results locally</label>
+          </span>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
-          {/* <button className="button" onClick={() => this.setState({ showModal: !this.state.showModal })}>Toggle modal</button> */}
+          <button className="button" onClick={() => this.setState({ showModal: true })}>Show previous results</button>
           <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.setState({ showModal: false })} className="graph-modal">
             <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
             <button className="button close" onClick={() => this.setState({ showModal: false })}>Close</button>

@@ -1,9 +1,10 @@
-import React from 'react';
-import { IGraphProps, ITestSummary, MapType } from '../../util/interfaces';
+import React, { useState } from 'react';
+import { IGraphProps, ITestSummary, MapType, ILocalResults } from '../../util/interfaces';
 import { ResponsiveContainer, XAxis, YAxis, Scatter, ComposedChart, Line, Dot, Legend } from "recharts";
 
 import './Graph.scss';
 import { combineTestResults } from '../../util/helpers';
+import { LOCAL_RESULTS_KEY_MCP, LOCAL_RESULTS_KEY_WASM } from '../../util/constants';
 
 const divideResultsPerCluster = (results: ITestSummary[]): Partial<ITestSummary>[] => {
   if (!results) {
@@ -54,14 +55,35 @@ const getBestFitLinePoints = (results: Partial<ITestSummary>[], key: MapType) =>
   };
 }
 
+const mergeResults = (results: ILocalResults, key: string): ITestSummary[] => {
+  const prevLocalResults = localStorage.getItem(key);
+  if (prevLocalResults) {
+    let prevResults = JSON.parse(prevLocalResults) as ILocalResults[];
+    prevResults = prevResults.filter(res => res.timestamp !== results.timestamp);
+
+    if (prevResults.length > 0) {
+      return prevResults
+        .reduce((acc, curr) => acc.concat(curr.results), [])
+        .concat(results.results);
+    }
+  }
+  return results.results;
+}
+
 export const Graph: React.FC<IGraphProps> = (props) => {
-  let mcpData = divideResultsPerCluster(props.latestMcpResults);
-  let wasmData = divideResultsPerCluster(props.latestWasmResults);
-  let data = combineTestResults(mcpData, wasmData);
+  let [displayLocal, setDisplayLocal] = useState(true);
+
+  // TODO: memoize
+  let mcpRes  = displayLocal ? mergeResults(props.latestMcpResults, LOCAL_RESULTS_KEY_MCP) : props.latestMcpResults.results;
+  let mcpData = divideResultsPerCluster(mcpRes);
   let mcpLine = getBestFitLinePoints(mcpData, 'mcp');
+
+  let wasmRes  = displayLocal ? mergeResults(props.latestWasmResults, LOCAL_RESULTS_KEY_WASM) : props.latestWasmResults.results;
+  let wasmData = divideResultsPerCluster(wasmRes);
   let wasmLine = getBestFitLinePoints(wasmData, 'wasm');
-  (data as any[]).push(...mcpLine.points);
-  (data as any[]).push(...wasmLine.points);
+
+  let data = combineTestResults(mcpData, wasmData);
+  (data as any[]).push(...mcpLine.points, ...wasmLine.points);
 
   return (
     <div className="graph-wrapper">
@@ -77,6 +99,7 @@ export const Graph: React.FC<IGraphProps> = (props) => {
           <Line dataKey="mcp" stroke="red" dot={false} legendType="none" strokeWidth="2"/>
         </ComposedChart>
       </ResponsiveContainer>
+      {/* TODO: redo this table with Grid */}
       <table>
         <tbody>
           <tr>
@@ -106,6 +129,12 @@ export const Graph: React.FC<IGraphProps> = (props) => {
           </tr>
         </tbody>
       </table>
+      <div className="graph-options">
+        <span title="Display all the results from previous tests you've run on this device.">
+          <input id="displayLocal" name="displayLocal" type="checkbox" checked={displayLocal} onChange={e => setDisplayLocal(e.target.checked)}/>
+          <label htmlFor="displayLocal">Display all saved results</label>
+        </span>
+      </div>
     </div>
   )
 }
