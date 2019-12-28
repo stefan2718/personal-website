@@ -39,3 +39,13 @@
     right: 2em;
   }
 }
+
+@include breakpoint(small) {
+  .graph-modal {
+    height: 100%;
+    width: 100%;
+    max-height: calc(100% - 12px);
+    max-width: calc(100% - 12px);
+    margin: 6px;
+  }
+}

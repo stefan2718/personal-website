@@ -70,9 +70,16 @@ const mergeResults = (results: ILocalResults, key: string): ITestSummary[] => {
   return results.results;
 }
 
+const renderLineOfBestFit = (line: ReturnType<typeof getBestFitLinePoints>) => {
+  return <>y =&nbsp;
+    <span className="slope">{String(line.m).substr(0, 6)}</span>
+    {`x ${line.plus} ${String(line.b).substr(0, 6)}`}
+  </>;
+}
+
 export const Graph: React.FC<IGraphProps> = (props) => {
   let [displayLocal, setDisplayLocal] = useState(true);
-
+  
   // TODO: memoize
   let mcpRes  = displayLocal ? mergeResults(props.latestMcpResults, LOCAL_RESULTS_KEY_MCP) : props.latestMcpResults.results;
   let mcpData = divideResultsPerCluster(mcpRes);
@@ -85,56 +92,44 @@ export const Graph: React.FC<IGraphProps> = (props) => {
   let data = combineTestResults(mcpData, wasmData);
   (data as any[]).push(...mcpLine.points, ...wasmLine.points);
 
+  // TODO throw in an explanation of why the axis's are "(per cluster)"
   return (
     <div className="graph-wrapper">
-      <ResponsiveContainer height="75%">
-        <ComposedChart data={data} margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
-          <Legend verticalAlign="top"/>
-          <XAxis dataKey="newMarkersClustered" label={{ value: "New markers clustered (per cluster)", position: "bottom" }}
-            type="number" domain={[0, 'dataMax']} allowDecimals={false} allowDataOverflow={true} padding={{ right: 10, left: 0}}/>
-          <YAxis label={{ value: "Cluster time (per cluster)", angle: -90, position: "left" }} unit="ms" type="number"/>
-          <Scatter name="MCP" dataKey="mcpClusterTime" fill="red" shape={<Dot r={2}/>}/>
-          <Scatter name="Wasm" dataKey="wasmClusterTime" fill="blue" shape={<Dot r={2}/>}/>
-          <Line dataKey="wasm" stroke="blue" dot={false} legendType="none" strokeWidth="2"/>
-          <Line dataKey="mcp" stroke="red" dot={false} legendType="none" strokeWidth="2"/>
-        </ComposedChart>
-      </ResponsiveContainer>
-      {/* TODO: redo this table with Grid */}
-      <table>
-        <tbody>
-          <tr>
-            <th></th>
-            <th>Line of best fit</th>
-            <th>Goodness of fit (R<sup>2</sup>)</th>
-            <th style={{ textAlign: "left", paddingLeft: "2em"}}>Comparison</th>
-          </tr>
-          <tr className="mcp">
-            <td>MCP</td>
-            <td>{`y = ${String(mcpLine.m).substr(0, 6)}x ${mcpLine.plus} ${String(mcpLine.b).substr(0, 6)}`}</td>
-            <td className="graph-r">{String(mcpLine.r).substr(0,5)}</td>
-            <td rowSpan={2}>
-              <div className="division">
-                <span className="divisor">
-                  <div>{String(mcpLine.m).substr(0, 6)}</div>
-                  <div className="wasm">{String(wasmLine.m).substr(0, 6)}</div>
-                </span>
-                <span style={{ color: "black" }}>= {String(mcpLine.m/wasmLine.m).substr(0,4)}x &nbsp; Wasm speedup</span>
-              </div>
-            </td>
-          </tr>
-          <tr className="wasm">
-            <td>Wasm</td>
-            <td>{`y = ${String(wasmLine.m).substr(0, 6)}x ${wasmLine.plus} ${String(wasmLine.b).substr(0, 6)}`}</td>
-            <td className="graph-r">{String(wasmLine.r).substr(0,5)}</td>
-          </tr>
-        </tbody>
-      </table>
       <div className="graph-options">
         <span title="Display all the results from previous tests you've run on this device.">
           <input id="displayLocal" name="displayLocal" type="checkbox" checked={displayLocal} onChange={e => setDisplayLocal(e.target.checked)}/>
           <label htmlFor="displayLocal">Display all saved results</label>
         </span>
       </div>
+      <ResponsiveContainer className="graph">
+        <ComposedChart data={data} margin={{ top: 30, right: 30, bottom: 30, left: 30 }}>
+          <Legend verticalAlign="top"/>
+          <XAxis dataKey="newMarkersClustered" label={{ value: "New markers clustered (per cluster)", position: "bottom" }}
+            type="number" domain={[0, 'dataMax']} allowDecimals={false} allowDataOverflow={true} padding={{ right: 10, left: 0}}/>
+          <YAxis label={{ value: "Cluster time (per cluster)", angle: -90, position: "left", dy: -80, dx: -10 }} unit="ms" type="number"/>
+          <Scatter name="MCP" dataKey="mcpClusterTime" fill="red" shape={<Dot r={2}/>}/>
+          <Scatter name="Wasm" dataKey="wasmClusterTime" fill="blue" shape={<Dot r={2}/>}/>
+          <Line dataKey="wasm" stroke="blue" dot={false} legendType="none" strokeWidth="2"/>
+          <Line dataKey="mcp" stroke="red" dot={false} legendType="none" strokeWidth="2"/>
+        </ComposedChart>
+      </ResponsiveContainer>
+      <section id="equations">
+        <span id="legend-title" className="title legend"></span>
+        <span id="legend-mcp" className="mcp legend">MCP</span>
+        <span id="legend-wasm" className="wasm legend">Wasm</span>
+        <span id="best-fit-title" className="title">Line of best fit</span>
+        <span id="best-fit-mcp" className="mcp">{renderLineOfBestFit(mcpLine)}</span>
+        <span id="best-fit-wasm" className="wasm">{renderLineOfBestFit(wasmLine)}</span>
+        <span id="r2-title" className="title">Goodness of fit (R<sup>2</sup>)</span>
+        <span id="r2-mcp" className="mcp">{String(mcpLine.r).substr(0,5)}</span>
+        <span id="r2-wasm" className="wasm">{String(wasmLine.r).substr(0,5)}</span>
+        <span id="comparison-title" className="title"></span>
+        <div id="comparison">
+          <span id="comparison-mcp" className="mcp">{String(mcpLine.m).substr(0, 6)}</span>
+          <span id="comparison-wasm" className="wasm">{String(wasmLine.m).substr(0, 6)}</span>
+          <span id="comparison-result" className="result">= {String(mcpLine.m/wasmLine.m).substr(0,4)}x &nbsp; Wasm speedup</span>
+        </div>
+      </section>
     </div>
   )
 }
