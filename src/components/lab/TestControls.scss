@@ -7,45 +7,44 @@
   .inputs {
     display: grid;
     grid-template: 
-      "minZoomLabel maxZoomLabel runsLabel maxPansLabel submitResultsLabel"
-      "startTest prevResults na na saveLocallyLabel";
+      "numbers checkboxes"
+      "buttons checkboxes";
     gap: 1em 2em;
-    justify-items: center;
     align-items: center;
 
-    #minZoomLabel {
-      grid-area: minZoomLabel;
-    }
-    #maxZoomLabel {
-      grid-area: maxZoomLabel;
-    }
-    #runsLabel {
-      grid-area: runsLabel;
-    }
-    #maxPansLabel {
-      grid-area: maxPansLabel;
-    }
-    #saveLocallyLabel {
-      grid-area: saveLocallyLabel;
-    }
-    #submitResultsLabel {
-      grid-area: submitResultsLabel;
-    }
-    #startTest {
-      grid-area: startTest;
-    }
-    #prevResults {
-      grid-area: prevResults;
-    }
+    #checkboxes {
+      grid-area: checkboxes;
+      display: flex;
+      flex-direction: column;
 
-    label {
-      margin: 0;
-
-      input[type=number] {
-        max-width: 3.5em;
+      :last-child label {
+        margin: 0;
       }
     }
+    #buttons {
+      grid-area: buttons;
 
+      button:not(:first-child) {
+        margin-left: 4em;
+      }
+    }
+    #numbers {
+      grid-area: numbers;
+      display: flex;
+      align-items: flex-end;
+
+      label {
+        margin: 0;
+
+        input[type=number] {
+          max-width: 3.5em;
+        }
+
+        &:not(:first-child) {
+          padding-left: 4em;
+        }
+      }
+    }
   }
 }
 
@@ -68,7 +67,40 @@
   }
 }
 
+@include breakpoint(medium) {
+  .test-controls {
+    .inputs {
+      #numbers {
+        label {
+          &:not(:first-child) {
+            padding-left: 2em;
+          }
+        }
+      }
+    }
+  }
+}
+
 @include breakpoint(small) {
+  .test-controls .inputs {
+    grid-template:
+      "numbers"
+      "checkboxes"
+      "buttons";
+
+    #buttons {
+      button:not(:first-child) {
+        margin-left: 1em;
+      }
+    }
+    #numbers {
+      label {
+        &:not(:first-child) {
+          padding-left: 1em;
+        }
+      }
+    }
+  }
   .graph-modal {
     height: 100%;
     width: 100%;
