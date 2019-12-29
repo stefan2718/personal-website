@@ -47,6 +47,18 @@ const isNumKey = (key: string): key is keyof ITestControlsStateNumbers => {
   return numKeys.includes(key as any);
 }
 
+const freezeScroll = (shouldFreeze: boolean) => {
+  if (shouldFreeze) {
+    document.body.style.top = `-${window.scrollY}px`;
+    document.body.style.position = 'fixed';
+  } else {
+    const scrollY = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+  }
+}
+
 ReactModal.setAppElement('#___gatsby');
 
 class TestControls extends React.Component<ITestControlsProps, ITestControlsState> {
@@ -342,6 +354,11 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     this.setState({ [key]: event.target.checked } as { [key in keyof ITestControlsStateBooleans]: boolean });
   }
 
+  showModal(showModal: boolean) {
+    this.setState({ showModal });
+    freezeScroll(showModal);
+  }
+
   render() {
     return (
       <div className="test-controls">
@@ -363,15 +380,15 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
             <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={e => this.setBoolean(e, "submitResults")}/>
             <label htmlFor="submitResults">Submit results</label>
           </span>
-          <span title="Save the results of this test locally on this device, so you can view multiple tests in aggregate.">
+          <span title="Save the results of this test locally in this device's browser, so you can view results of multiple tests in aggregate.">
             <input id="saveLocally" name="saveLocally" type="checkbox" checked={this.state.saveLocally} onChange={e => this.setBoolean(e, "saveLocally")}/>
             <label htmlFor="saveLocally">Save results locally</label>
           </span>
           <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
-          <button className="button" onClick={() => this.setState({ showModal: true })}>Show previous results</button>
-          <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.setState({ showModal: false })} className="graph-modal">
+          <button className="button" onClick={() => this.showModal(true)}>Show previous results</button>
+          <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.showModal(false)} className="graph-modal">
             <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
-            <button className="button close" onClick={() => this.setState({ showModal: false })}>Close</button>
+            <button className="button close" onClick={() => this.showModal(false)}>Close</button>
           </ReactModal>
         </div>
       </div>
