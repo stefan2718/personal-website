@@ -5,13 +5,41 @@
 
 .test-controls {
   .inputs {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    display: grid;
+    grid-template: 
+      "minZoomLabel maxZoomLabel runsLabel maxPansLabel submitResultsLabel"
+      "startTest prevResults na na saveLocallyLabel";
+    gap: 1em 2em;
+    justify-items: center;
+    align-items: center;
+
+    #minZoomLabel {
+      grid-area: minZoomLabel;
+    }
+    #maxZoomLabel {
+      grid-area: maxZoomLabel;
+    }
+    #runsLabel {
+      grid-area: runsLabel;
+    }
+    #maxPansLabel {
+      grid-area: maxPansLabel;
+    }
+    #saveLocallyLabel {
+      grid-area: saveLocallyLabel;
+    }
+    #submitResultsLabel {
+      grid-area: submitResultsLabel;
+    }
+    #startTest {
+      grid-area: startTest;
+    }
+    #prevResults {
+      grid-area: prevResults;
+    }
 
     label {
-      padding: 0 2em;
+      margin: 0;
 
       input[type=number] {
         max-width: 3.5em;

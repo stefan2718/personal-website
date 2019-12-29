@@ -293,6 +293,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     return Math.round(num * 10000) / 10000;
   }
 
+  // TODO ? if on mobile, scroll to map before clustering?
   setMapStateAndWaitForResults = (key: MapType, resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
     return defer(() => {
       if (key === "wasm") {
@@ -364,33 +365,33 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       <div className="test-controls">
         <h4>Automated Test Settings</h4>
         <div className="inputs">
-          <label htmlFor="minZoom" title="The most zoomed out level, where the test will start">Min zoom<br/>
+          <label id="minZoomLabel" htmlFor="minZoom" title="The most zoomed out level, where the test will start">Min zoom<br/>
             <input id="minZoom" type="number" min={minMax["minZoom"].min} max={minMax["minZoom"].max} disabled={this.state.running} value={this.state.minZoom} onChange={this.onNumberChange}/>
           </label>
-          <label htmlFor="maxZoom" title="The most zoomed in level, where the test will end">Max zoom<br/>
+          <label id="maxZoomLabel" htmlFor="maxZoom" title="The most zoomed in level, where the test will end">Max zoom<br/>
             <input id="maxZoom" type="number" min={minMax["maxZoom"].min} max={minMax["maxZoom"].max} disabled={this.state.running} value={this.state.maxZoom} onChange={this.onNumberChange}/>
           </label>
-          <label htmlFor="runs" title="How many iterations going from minZoom to maxZoom">Runs<br/>
+          <label id="runsLabel" htmlFor="runs" title="How many iterations going from minZoom to maxZoom">Runs<br/>
             <input id="runs" type="number" min={minMax["runs"].min} max={minMax["runs"].max} disabled={this.state.running} value={this.state.runs} onChange={this.onNumberChange}/>
           </label>
-          <label htmlFor="maxPans" title="How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level">Max pans per zoom<br/>
+          <label id="maxPansLabel" htmlFor="maxPans" title="How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level">Max pans per zoom<br/>
             <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
           </label>
-          <span title="If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.">
+          <span id="submitResultsLabel" title="If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.">
             <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={e => this.setBoolean(e, "submitResults")}/>
             <label htmlFor="submitResults">Submit results</label>
           </span>
-          <span title="Save the results of this test locally in this device's browser, so you can view results of multiple tests in aggregate.">
+          <span id="saveLocallyLabel" title="Save the results of this test locally in this device's browser, so you can view results of multiple tests in aggregate.">
             <input id="saveLocally" name="saveLocally" type="checkbox" checked={this.state.saveLocally} onChange={e => this.setBoolean(e, "saveLocally")}/>
             <label htmlFor="saveLocally">Save results locally</label>
           </span>
-          <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
-          <button className="button" onClick={() => this.showModal(true)}>Show previous results</button>
-          <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.showModal(false)} className="graph-modal">
-            <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
-            <button className="button close" onClick={() => this.showModal(false)}>Close</button>
-          </ReactModal>
+          <button id="startTest" className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
+          <button id="prevResults" className="button" onClick={() => this.showModal(true)}>Show previous results</button>
         </div>
+        <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.showModal(false)} className="graph-modal">
+          <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
+          <button className="button close" onClick={() => this.showModal(false)}>Close</button>
+        </ReactModal>
       </div>
     )
   }
