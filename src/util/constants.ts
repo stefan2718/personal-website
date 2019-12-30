@@ -27,3 +27,6 @@ export const BOUNDS_ALL_POINTS: IBounds = Object.freeze({
   north: 43.9865649,
   east: -78.8772558
 });
+
+export const LOCAL_RESULTS_KEY_MCP = "res_mcp";
+export const LOCAL_RESULTS_KEY_WASM = "res_wasm";

@@ -1,0 +1,143 @@
+@import '../../assets/scss/libs/skel';
+@import '../../assets/scss/libs/vars';
+@import '../../assets/scss/libs/functions';
+@import '../../assets/scss/libs/breakpoints';
+
+.graph-wrapper {
+  height: 100%;
+
+  .graph-options {
+    text-align: center;
+    padding-top: 2em;
+    > span > label {
+      margin: 0;
+    }
+  }
+
+  .graph {
+    height: 60% !important;
+  }
+
+  #equations {
+    margin-top: 1em;
+    display: grid;
+    grid-template: 
+      "legend-title best-fit-title r2-title comparison-title"
+      "legend-mcp   best-fit-mcp   r2-mcp   comparison"
+      "legend-wasm  best-fit-wasm  r2-wasm  comparison";
+
+    #legend-title {
+      grid-area: legend-title;
+    }
+    #legend-mcp {
+      grid-area: legend-mcp;
+    }
+    #legend-wasm {
+      grid-area: legend-wasm;
+    }
+    #best-fit-title {
+      grid-area: best-fit-title;
+    }
+    #best-fit-mcp {
+      grid-area: best-fit-mcp;
+    }
+    #best-fit-wasm {
+      grid-area: best-fit-wasm;
+    }
+    #r2-title {
+      grid-area: r2-title;
+    }
+    #r2-mcp {
+      grid-area: r2-mcp;
+    }
+    #r2-wasm {
+      grid-area: r2-wasm;
+    }
+    #comparison-title {
+      grid-area: comparison-title;
+      padding-right: 8em;
+    }
+    #comparison {
+      grid-area: comparison;
+      display: grid;
+      grid-template:
+        "comparison-mcp comparison-result"
+        "comparison-wasm comparison-result" /
+        min-content auto;
+      
+      > * {
+        text-align: left;
+      }
+      #comparison-mcp {
+        grid-area: comparison-mcp;
+        border-bottom: 1px solid black;
+      }
+      #comparison-wasm {
+        grid-area: comparison-wasm;
+      }
+      #comparison-result {
+        font-size: 1.2em;
+        padding: 0 0 0 1em;
+        align-self: center;
+        color: black;
+        grid-area: comparison-result;
+      }
+    }
+    .mcp {
+      color: #a62929;
+    }
+    .wasm {
+      color: #1313d9;
+    }
+    > * {
+      text-align: center;
+    }
+    > .legend {
+      text-align: right;
+    }
+    .slope {
+      text-decoration: underline;
+    }
+  }
+}
+
+@include breakpoint(small) {
+  .graph-wrapper {
+    .graph {
+      height: 55% !important;
+    }
+    #equations {
+      grid-template: 
+        "best-fit-title r2-title"
+        "best-fit-mcp   r2-mcp"
+        "best-fit-wasm  r2-wasm"
+        "comparison-title comparison-title"
+        "comparison comparison";
+
+      .legend {
+        display: none;
+      }
+
+      #comparison-title {
+        padding-top: 1em;
+      }
+
+      #comparison {
+        justify-self: center;
+        #comparison-mcp {
+          grid-area: comparison-mcp;
+          border-bottom: 1px solid black;
+        }
+        #comparison-wasm {
+          grid-area: comparison-wasm;
+        }
+        #comparison-result {
+          padding: 0 0 0 1em;
+          align-self: center;
+          color: black;
+          grid-area: comparison-result;
+        }
+      }
+    }
+  }
+}

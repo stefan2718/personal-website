@@ -52,9 +52,16 @@ export interface IBlogSummary {
   excerpt: string;
 }
 
-export interface ITestControlsState extends ITestControlsStateNumbers {
+export interface ITestControlsState extends ITestControlsStateNumbers, ITestControlsStateBooleans {
+  latestWasmResults: ILocalResults;
+  latestMcpResults: ILocalResults;
+}
+
+export interface ITestControlsStateBooleans {
   running: boolean;
   submitResults: boolean;
+  saveLocally: boolean;
+  showModal: boolean;
 }
 
 export interface ITestControlsStateNumbers {
@@ -147,4 +154,18 @@ export interface IMapProps {
   gridSize: number;
   renderIndicatorPercent: number;
   showIndicator: boolean;
+}
+
+export interface IGraphProps {
+  latestWasmResults: ILocalResults;
+  latestMcpResults: ILocalResults;
+}
+
+export interface IModalProps {
+  open: boolean;
+}
+
+export interface ILocalResults {
+  timestamp: number;
+  results: ITestSummary[];
 }

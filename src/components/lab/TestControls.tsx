@@ -1,12 +1,15 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult, ITestControlsStateNumbers } from "../../util/interfaces";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult, ITestControlsStateNumbers, ITestControlsStateBooleans, ILocalResults } from "../../util/interfaces";
 import { Subject, defer, concat, Observable, forkJoin, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
-import { INTIAL_MAP_STATE } from "../../util/constants";
+import { INTIAL_MAP_STATE, LOCAL_RESULTS_KEY_MCP, LOCAL_RESULTS_KEY_WASM } from "../../util/constants";
 import { IMarker, IBounds } from "wasm-marker-clusterer";
 import { WasmTestRequest } from "../../../shared/shared";
+import ReactModal from 'react-modal';
 
 import './TestControls.scss';
+import { Graph } from "./Graph";
+import { combineTestResults } from "../../util/helpers";
 
 const COOLDOWN_WAIT_TIME = 300;
 const INITIAL_SPIRAL_STATE: ISpiralState = Object.freeze({
@@ -44,6 +47,20 @@ const isNumKey = (key: string): key is keyof ITestControlsStateNumbers => {
   return numKeys.includes(key as any);
 }
 
+const freezeScroll = (shouldFreeze: boolean) => {
+  if (shouldFreeze) {
+    document.body.style.top = `-${window.scrollY}px`;
+    document.body.style.position = 'fixed';
+  } else {
+    const scrollY = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+  }
+}
+
+ReactModal.setAppElement('#___gatsby');
+
 class TestControls extends React.Component<ITestControlsProps, ITestControlsState> {
 
   wasmState: Subject<IMapTestState> = new Subject();
@@ -52,6 +69,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
 
   constructor(props: ITestControlsProps) {
     super(props);
+    const timestamp = Date.now();
     this.state = {
       minZoom: 7,
       maxZoom: 14,
@@ -59,6 +77,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       runs: 1,
       running: false,
       submitResults: true,
+      saveLocally: true,
+      showModal: false,
+      latestMcpResults: { results: [], timestamp },
+      latestWasmResults: { results: [], timestamp },
     }
   }
 
@@ -87,6 +109,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     return testState;
   }
   
+  // TODO: Stop test
   startTest = () => {
     let maxZoom = Math.max(this.state.maxZoom, this.state.minZoom);
     let minZoom = Math.min(this.state.maxZoom, this.state.minZoom);
@@ -195,35 +218,28 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   resultsToData = (results: ITestResults) => {
     let wasmResults = this.flattenTestResults(results.wasmResults);
     let mcpResults = this.flattenTestResults(results.mcpResults);
-    let totalResults: ICombinedResult[] = [];
+
     if (wasmResults.length !== mcpResults.length) {
       throw new Error(`Length of Wasm results (${wasmResults.length}) not equal to MCP results (${mcpResults.length})`);
     }
     if (this.state.submitResults) {
-      this.postTestResults(wasmResults, mcpResults);
+      this.postTestResults(mcpResults, wasmResults);
     }
 
-    mcpResults.forEach((_, i) => {
-      if (mcpResults[i].newMarkersClustered === wasmResults[i].newMarkersClustered && mcpResults[i].clusterCount === wasmResults[i].clusterCount) {
-        totalResults.push({
-          clusterCount: mcpResults[i].clusterCount,
-          newMarkersClustered: mcpResults[i].newMarkersClustered,
-          mcpClusterTime: mcpResults[i].clusterTime,
-          wasmClusterTime: wasmResults[i].clusterTime,
-        });
-      } else {
-        totalResults.push({
-          clusterCount: mcpResults[i].clusterCount,
-          newMarkersClustered: mcpResults[i].newMarkersClustered,
-          mcpClusterTime: mcpResults[i].clusterTime,
-        });
-        totalResults.push({
-          clusterCount: wasmResults[i].clusterCount,
-          newMarkersClustered: wasmResults[i].newMarkersClustered,
-          wasmClusterTime: wasmResults[i].clusterTime,
-        });
-      }
+    const timestamp = Date.now();
+    if (this.state.saveLocally) {
+      this.saveResultsLocally(mcpResults, LOCAL_RESULTS_KEY_MCP, timestamp);
+      this.saveResultsLocally(wasmResults, LOCAL_RESULTS_KEY_WASM, timestamp);
+    }
+
+    this.setState({
+      latestMcpResults: { results: mcpResults, timestamp },
+      latestWasmResults: { results: wasmResults, timestamp },
+      showModal: true,
     });
+
+    let totalResults = combineTestResults(mcpResults, wasmResults);
+
     console.log('New Markers Clustered, Clusters, Wasm Cluster Time, MCP Cluster Time\n' +
       totalResults.map(row => `${row.newMarkersClustered},${row.clusterCount},` +
         `${row.wasmClusterTime ? this.round(row.wasmClusterTime) : ''},` +
@@ -232,7 +248,16 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     );
   }
 
-  postTestResults = async (wasmResults: ITestSummary[], mcpResults: ITestSummary[]) => {
+  saveResultsLocally = (results: ITestSummary[], key: string, timestamp: number) => {
+    const prevStore = localStorage.getItem(key);
+    let prev: ILocalResults[] = [];
+    if (prevStore) {
+      prev = JSON.parse(prevStore) as ILocalResults[];
+    }
+    localStorage.setItem(key, JSON.stringify(prev.concat({ results, timestamp })));
+  }
+
+  postTestResults = async (mcpResults: ITestSummary[], wasmResults: ITestSummary[]) => {
     const body: WasmTestRequest = {
       wasmResults,
       mcpResults,
@@ -269,6 +294,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     return Math.round(num * 10000) / 10000;
   }
 
+  // TODO ? if on mobile, scroll to map before clustering?
   setMapStateAndWaitForResults = (key: MapType, resultSubject: Subject<IMapTestState>, mapState: IMapState): Observable<IKeyedMapTestState> => {
     return defer(() => {
       if (key === "wasm") {
@@ -326,8 +352,21 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     }
   }
 
-  setBoolean = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ submitResults: event.target.checked });
+  setBoolean(event: React.ChangeEvent<HTMLInputElement>, key: keyof ITestControlsStateBooleans) {
+    this.setState({ [key]: event.target.checked } as { [key in keyof ITestControlsStateBooleans]: boolean });
+  }
+
+  showModal(showModal: boolean) {
+    this.setState({ showModal });
+    freezeScroll(showModal);
+  }
+
+  renderPrevButton() {
+    if (typeof window !== 'undefined' && localStorage.getItem(LOCAL_RESULTS_KEY_MCP)) {
+      return <button className="button" onClick={() => this.showModal(true)}>Show previous results</button>
+    } else {
+      return null;
+    }
   }
 
   render() {
@@ -335,24 +374,39 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       <div className="test-controls">
         <h4>Automated Test Settings</h4>
         <div className="inputs">
-          <label htmlFor="minZoom" title="The most zoomed out level, where the test will start">Min zoom<br/>
-            <input id="minZoom" type="number" min={minMax["minZoom"].min} max={minMax["minZoom"].max} disabled={this.state.running} value={this.state.minZoom} onChange={this.onNumberChange}/>
-          </label>
-          <label htmlFor="maxZoom" title="The most zoomed in level, where the test will end">Max zoom<br/>
-            <input id="maxZoom" type="number" min={minMax["maxZoom"].min} max={minMax["maxZoom"].max} disabled={this.state.running} value={this.state.maxZoom} onChange={this.onNumberChange}/>
-          </label>
-          <label htmlFor="runs" title="How many iterations going from minZoom to maxZoom">Runs<br/>
-            <input id="runs" type="number" min={minMax["runs"].min} max={minMax["runs"].max} disabled={this.state.running} value={this.state.runs} onChange={this.onNumberChange}/>
-          </label>
-          <label htmlFor="maxPans" title="How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level">Max pans per zoom<br/>
-            <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
-          </label>
-          <span title="If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.">
-            <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={this.setBoolean}/>
-            <label htmlFor="submitResults">Submit results</label>
-          </span>
-          <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
+          <div id="numbers">
+            <label htmlFor="minZoom" title="The most zoomed out level, where the test will start">Min zoom<br/>
+              <input id="minZoom" type="number" min={minMax["minZoom"].min} max={minMax["minZoom"].max} disabled={this.state.running} value={this.state.minZoom} onChange={this.onNumberChange}/>
+            </label>
+            <label htmlFor="maxZoom" title="The most zoomed in level, where the test will end">Max zoom<br/>
+              <input id="maxZoom" type="number" min={minMax["maxZoom"].min} max={minMax["maxZoom"].max} disabled={this.state.running} value={this.state.maxZoom} onChange={this.onNumberChange}/>
+            </label>
+            <label htmlFor="runs" title="How many iterations going from minZoom to maxZoom">Runs<br/>
+              <input id="runs" type="number" min={minMax["runs"].min} max={minMax["runs"].max} disabled={this.state.running} value={this.state.runs} onChange={this.onNumberChange}/>
+            </label>
+            <label htmlFor="maxPans" title="How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level">Max pans per zoom<br/>
+              <input id="maxPans" type="number" min={minMax["maxPans"].min} max={minMax["maxPans"].max} disabled={this.state.running} value={this.state.maxPans} onChange={this.onNumberChange}/>
+            </label>
+          </div>
+          <div id="checkboxes">
+            <span title="If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.">
+              <input id="submitResults" name="submitResults" type="checkbox" checked={this.state.submitResults} onChange={e => this.setBoolean(e, "submitResults")}/>
+              <label htmlFor="submitResults">Submit results</label>
+            </span>
+            <span title="Save the results of this test locally in this device's browser, so you can view results of multiple tests in aggregate.">
+              <input id="saveLocally" name="saveLocally" type="checkbox" checked={this.state.saveLocally} onChange={e => this.setBoolean(e, "saveLocally")}/>
+              <label htmlFor="saveLocally">Save results locally</label>
+            </span>
+          </div>
+          <div id="buttons">
+            <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
+            {this.renderPrevButton()}
+          </div>
         </div>
+        <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.showModal(false)} className="graph-modal">
+          <Graph latestMcpResults={this.state.latestMcpResults} latestWasmResults={this.state.latestWasmResults}></Graph>
+          <button className="button close" onClick={() => this.showModal(false)}>Close</button>
+        </ReactModal>
       </div>
     )
   }

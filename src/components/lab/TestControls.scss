@@ -1,17 +1,111 @@
+@import '../../assets/scss/libs/skel';
+@import '../../assets/scss/libs/vars';
+@import '../../assets/scss/libs/functions';
+@import '../../assets/scss/libs/breakpoints';
+
 .test-controls {
   .inputs {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    display: grid;
+    grid-template: 
+      "numbers checkboxes"
+      "buttons checkboxes";
+    gap: 1em 2em;
+    align-items: center;
 
-    label {
-      padding: 0 2em;
+    #checkboxes {
+      grid-area: checkboxes;
+      display: flex;
+      flex-direction: column;
 
-      input[type=number] {
-        max-width: 3.5em;
+      :last-child label {
+        margin: 0;
       }
     }
+    #buttons {
+      grid-area: buttons;
 
+      button:not(:first-child) {
+        margin-left: 4em;
+      }
+    }
+    #numbers {
+      grid-area: numbers;
+      display: flex;
+      align-items: flex-end;
+
+      label {
+        margin: 0;
+
+        input[type=number] {
+          max-width: 3.5em;
+        }
+
+        &:not(:first-child) {
+          padding-left: 4em;
+        }
+      }
+    }
+  }
+}
+
+.graph-modal {
+  background-color: white;
+  width: 95%;
+  max-width: 50em;
+  height: 70vh;
+  max-height: 35em;
+  border: solid 3px _palette(border);
+  margin: 15vh auto;
+  outline: 0;
+  border-radius: 6px;
+  position: relative;
+
+  button.close {
+    position: absolute;
+    bottom: 1.5em;
+    right: 2em;
+  }
+}
+
+@include breakpoint(medium) {
+  .test-controls {
+    .inputs {
+      #numbers {
+        label {
+          &:not(:first-child) {
+            padding-left: 2em;
+          }
+        }
+      }
+    }
+  }
+}
+
+@include breakpoint(small) {
+  .test-controls .inputs {
+    grid-template:
+      "numbers"
+      "checkboxes"
+      "buttons";
+
+    #buttons {
+      button:not(:first-child) {
+        margin-left: 1em;
+      }
+    }
+    #numbers {
+      label {
+        &:not(:first-child) {
+          padding-left: 1em;
+        }
+      }
+    }
+  }
+  .graph-modal {
+    height: 100%;
+    width: 100%;
+    max-height: calc(100% - 12px);
+    max-width: calc(100% - 12px);
+    margin: 6px;
   }
 }
