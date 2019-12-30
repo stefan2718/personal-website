@@ -361,6 +361,14 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     freezeScroll(showModal);
   }
 
+  renderPrevButton() {
+    if (typeof window !== 'undefined' && localStorage.getItem(LOCAL_RESULTS_KEY_MCP)) {
+      return <button className="button" onClick={() => this.showModal(true)}>Show previous results</button>
+    } else {
+      return null;
+    }
+  }
+
   render() {
     return (
       <div className="test-controls">
@@ -392,7 +400,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
           </div>
           <div id="buttons">
             <button className="button" onClick={this.startTest} disabled={this.state.running}>{ this.state.running ? 'Running...' : 'Start' }</button>
-            <button className="button" onClick={() => this.showModal(true)}>Show previous results</button>
+            {this.renderPrevButton()}
           </div>
         </div>
         <ReactModal isOpen={this.state.showModal} onRequestClose={() => this.showModal(false)} className="graph-modal">
