@@ -80,7 +80,7 @@ const renderLineOfBestFit = (line: ReturnType<typeof getBestFitLinePoints>) => {
   </>;
 }
 
-export const Graph: React.FC<IGraphProps> = (props) => {
+export const Graph: React.FC<IGraphProps> = React.memo((props) => {
   let [displayLocal, setDisplayLocal] = useState(true);
   
   // TODO: memoize
@@ -135,4 +135,4 @@ export const Graph: React.FC<IGraphProps> = (props) => {
       </section>
     </div>
   )
-}
+})
