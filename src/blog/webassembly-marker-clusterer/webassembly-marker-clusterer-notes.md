@@ -1,12 +1,9 @@
 ---
-path: "/blog/webassembly-marker-clusterer"
+path: "/blog/webassembly-marker-clusterer-notes"
 date: "2019-05-29T00:00:00Z"
 title: "WebAssembly VS JavaScript - A comparison of clustering map points."
 description: ""
 draft: true
-tags:
-  - test
-  - syntax highlighting
 ---
 
 A work in progress article comparing two implementations of map point clustering <!-- end -->
@@ -21,7 +18,7 @@ The first major roadblock I hit was the fact that it is not straight-forward to 
 
 For objects and data of arbitrary complexity, you can use Serde to serialize/deserialize from JSON across this boundary.
 
-With this in mind, you have to figure out how to minimize data transfering across this boundary, because it is slow. 
+With this in mind, you have to figure out how to minimize data transferring across this boundary, because it is slow. 
 
 
 ## Fighting the borrow checker
@@ -76,7 +73,7 @@ https://stackoverflow.com/questions/55039923/why-does-chrome-eventually-throw-ou
 
 ## Cluster state and clustering idempotency
 
-When you pan the map around at a consistent zoom level, MCP maintains the calculated state of existing clusters. This means when you partially move the map, markers that should now be visible will either be added to existing clusters, or trigger the creation of a new cluster. This creates a better user experience by preventing existing clusters from disappearing during panning, but it has the side effect of preventing the clustering process from being idempotent. For example, picture 3 nearby coordinates, A, B, and C. If you create initial clusters at A, then pan to B, you will end up with different resulting clusters than if you create intial clusters at C, then pan to B.
+When you pan the map around at a consistent zoom level, MCP maintains the calculated state of existing clusters. This means when you partially move the map, markers that should now be visible will either be added to existing clusters, or trigger the creation of a new cluster. This creates a better user experience by preventing existing clusters from disappearing during panning, but it has the side effect of preventing the clustering process from being idempotent. For example, picture 3 nearby coordinates, A, B, and C. If you create initial clusters at A, then pan to B, you will end up with different resulting clusters than if you create initial clusters at C, then pan to B.
 
 HELPFUL EXPLANATORY IMAGE??
 
@@ -100,7 +97,7 @@ This version results in a 14x speedup for the Wasm version.
 
 This version added the option to only return the modified or new clusters. Then on the JS side, we can merge the modified clusters with existing clusters to get the full state.
 
-With this change, Wasm is consistently faster than JS in all use cases. Previously, Wasm would be slower than JS in cases with zero or only a few new markers. This was because the Wasm version would still be serializing and returning all the previously created clusters, which about 1ms / 1000 markers.
+With this change, Wasm is consistently faster than JS in all use cases. Previously, Wasm would be slower than JS in cases with zero or only a few new markers. This was because the Wasm version would still be serializing and returning all the previously created clusters, which costs about 1ms / 1000 markers.
 
 As well in this version, I swapped out the serialization library from the default Serde serialization to [serde-wasm-bindgen](https://github.com/cloudflare/serde-wasm-bindgen) which is supposed to benefit from bypassing the JSON intermediate format. In a few simple tests, it seemed to give approximately the same performance, with 30kb less binary size.
 
@@ -130,7 +127,7 @@ This is not allowed, because WebAssembly download and compilation must happen as
 Add an async splitpoint (i. e. import()) somewhere between your entrypoint and the WebAssembly module
 ```
 
-So now the whole libary has to be loaded async and the user needs to care about knowing how a dynamic `import` works.
+So now the whole library has to be loaded async and the user needs to care about knowing how a dynamic `import` works.
 
 ## v0.1.1 wasm-marker-clusterer
 
