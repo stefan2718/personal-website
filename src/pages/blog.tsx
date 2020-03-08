@@ -33,7 +33,7 @@ class Blog extends React.Component<IGatsbyProps> {
                   date={edge.node.frontmatter.date}
                   dateISO={edge.node.frontmatter.dateISO}
                   title={edge.node.frontmatter.title}
-                  excerpt={edge.node.excerpt}
+                  excerpt={edge.node.frontmatter.description}
                   />
               )}
             </main>
@@ -48,19 +48,10 @@ export const pageQuery = graphql`
 {
   allMarkdownRemark(
     sort: { order: DESC, fields: [frontmatter___date] }
+    filter: { frontmatter: { draft: { eq: false }}}
     limit: 10
   ) {
-    edges {
-      node {
-        excerpt(pruneLength: 240)
-        frontmatter {
-          dateISO: date
-          date(formatString: "MMMM DD, YYYY")
-          path
-          title
-        }
-      }
-    }
+    ...BlogPostFragment
   }
 }`
 
