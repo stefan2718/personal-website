@@ -3,6 +3,11 @@
 @import '../../assets/scss/libs/functions';
 
 .wasm-lab {
+  .inner-main {
+    .no-hover summary {
+      padding-bottom: 1.5em;
+    }
+  }
   main {
     details summary {
       cursor: pointer;

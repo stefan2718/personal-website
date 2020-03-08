@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Helmet from 'react-helmet';
+import { Link } from 'gatsby';
 import HomePageLayout from '../../components/HomePageLayout';
 import pointData from '../../assets/json/points.json';
 import { IGatsbyProps, IMapState, MapType, IMapTestState } from '../../util/interfaces';
@@ -23,6 +24,45 @@ const torontoPoints = (pointData as string[]).map(pointStr => {
   let pointObj = pointStr.split(";");
   return { lat: Number(pointObj[0]), lng: Number(pointObj[1]) };
 })
+type WasmOption = typeof wasmOptions;
+export const wasmOptions = {
+  minZoom: {
+    label: "Min zoom",
+    desc: "The most zoomed out level, where the test will start",
+  },
+  maxZoom: {
+    label: "Max zoom",
+    desc: "The most zoomed in level, where the test will end",
+  },
+  runs: {
+    label: "Runs",
+    desc: "How many iterations going from minZoom to maxZoom",
+  },
+  maxPans: {
+    label: "Max pans per zoom",
+    desc: "How many times the map will pan in any direction at the same zoom level. Only is involved if all markers are not already clustered at the given zoom level",
+  },
+  submitResults: {
+    label: "Submit results",
+    desc: "If checked, your test results will be sent to a database to draw aggregated graphs for different browsers and OS's. No personal information is involved at all.",
+  },
+  saveLocally: {
+    label: "Save results locally",
+    desc: "Save the results of this test locally in this device's browser, so you can view results of multiple tests in aggregate.",
+  },
+  gridSize: {
+    label: "Grid size",
+    desc: "How many pixels make up the length and width of each clusters area",
+  },
+  syncMap: {
+    label: "Synchronize maps",
+    desc: "Moving one map will cause the other map to follow",
+  },
+  showIndicator: {
+    label: "Show rendering indicator",
+    desc: "This enables a javascript-animated rainbow-slider that demonstrates when heavy computation is occuring on the main thread. The element will stop moving or stutter when this happens.",
+  },
+}
 
 const gridSizeMax = 400;
 const gridSizeMin = 10;
@@ -79,14 +119,17 @@ export default function Clusterer(props: IGatsbyProps) {
       <div id="main" className="wasm-lab">
         <div className="inner-main">
           <h1>WebAssembly Experiment</h1>
-          <p>I'm working towards a side-by-side comparison of the popular&nbsp;
-            <a href="https://github.com/googlemaps/v3-utility-library/tree/master/markerclustererplus">MarkerClusterPlus for Google Maps</a>
-            &nbsp;library and a <a href="https://developer.mozilla.org/en-US/docs/WebAssembly">WebAssembly</a> 
-            &nbsp;implementation. MarkerClusterPlus clusters map points together when you have too many to display. This can become fairly CPU intensive when 
-            you have thousands of map points. I'd like to see what benefits there will be from moving this clustering logic into
-            a WebAssembly module. Hopefully, by running it outside of the main JavaScript event loop, it will take less time, and
-            allow the page to keep rendering without blocking.
+          <p>Read the <Link to="/blog/webassembly-marker-clusterer">blog post</Link> about this experiment.
+            <span className="can-hover">&nbsp; Desktop users can hover over different input options to learn more.</span>
           </p>
+          <details className="no-hover">
+            <summary>Mobile users can tap here to read more about what the different input options do below.</summary>
+            <ul>
+              {(Object.keys(wasmOptions) as any).map((key: keyof WasmOption) => 
+                <li key={key}><b>{wasmOptions[key].label}:</b> {wasmOptions[key].desc} </li>
+              )}
+            </ul>
+           </details>
           <main>
             <div className="map-controls">
               <TestControls
@@ -103,16 +146,16 @@ export default function Clusterer(props: IGatsbyProps) {
               <div className="map-sync">
                 <h4>Map Settings</h4>
                 <div className="map-settings">
-                  <label htmlFor="gridSize" title="How many pixels make up the length and width of each clusters area">Grid Size<br/>
+                  <label htmlFor="gridSize" title={wasmOptions.gridSize.desc}>{wasmOptions.gridSize.label}<br/>
                     <input step="10" id="gridSize" type="number" min={gridSizeMin} max={gridSizeMax} disabled={testIsRunning} value={gridSize} onChange={setGridSizeInBound}/>
                   </label>
-                  <span title="Moving one map will cause the other map to follow">
+                  <span title={wasmOptions.syncMap.desc}>
                     <input id="syncMap" name="syncMap" type="checkbox" disabled={testIsRunning} checked={syncMap} onChange={changeSyncMap}/>
-                    <label htmlFor="syncMap">Synchronize maps</label>
+                    <label htmlFor="syncMap">{wasmOptions.syncMap.label}</label>
                   </span>
-                  <span title="This enables a javascript-animated element that demonstrates when heavy computation is occuring on the main thread. The element will stop moving or stutter when this happens.">
+                  <span title={wasmOptions.showIndicator.desc}>
                     <input id="showIndicator" name="showIndicator" type="checkbox" checked={showIndicator} onChange={changeShowIndicator}/>
-                    <label htmlFor="showIndicator">Show rendering indicator</label>
+                    <label htmlFor="showIndicator">{wasmOptions.showIndicator.label}</label>
                   </span>
                 </div>
               </div>
