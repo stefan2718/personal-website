@@ -6,10 +6,6 @@ import LabRoutes from '../components/LabRoutes';
 
 class Lab extends React.Component<IGatsbyProps> {
 
-  constructor(props: IGatsbyProps) {
-    super(props);
-  }
-
   render() {
     // TODO
     const siteTitle = "Stefan Battiston"

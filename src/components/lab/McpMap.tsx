@@ -6,11 +6,18 @@ import GoogleMapReact, { ChangeEventValue, Maps } from "google-map-react";
 import { ICluster } from "wasm-marker-clusterer";
 import { boundsToIBounds } from "../../util/helpers";
 
+const getClusterData = (clusterer: MarkerClusterer, cluster: Cluster, getBounds: boolean = false, sliceTo: number = -1): ICluster => ({
+  size: cluster.getSize(),
+  center: cluster.getCenter().toJSON(),
+  bounds: getBounds ? clusterer.getExtendedBounds(new google.maps.LatLngBounds(cluster.getCenter(), cluster.getCenter())).toJSON() : null,
+  // TODO: simplify if too slow? all I need is a count?
+  markers: (sliceTo === -1 ? cluster.getMarkers() : cluster.getMarkers().slice(0,sliceTo)).map(m => m.getPosition().toJSON()),
+});
+
 export default function McpMap(props: IMapProps) {
   let [clickedCluster, setClickedCluster] = useState<ICluster>();
   let [clusterer, setClusterer] = useState<MarkerClusterer>();
   let [clusters, setClusters] = useState<ICluster[]>([]);
-  let [map, setMap] = useState<google.maps.Map>();
 
   let [clusterStart, setClusterStart] = useState<number>(0);
   let [clusterEnd, setClusterEnd] = useState<number>(0);
@@ -30,7 +37,7 @@ export default function McpMap(props: IMapProps) {
           setClusterEnd(performance.now());
         }),
         clusterer.addListener('click', (cluster: Cluster) => {
-          setClickedCluster(getClusterData(cluster, true, 10));
+          setClickedCluster(getClusterData(clusterer, cluster, true, 10));
         }),
       );
     }
@@ -52,9 +59,9 @@ export default function McpMap(props: IMapProps) {
         markerCount,
         clusterCount: clusterer.getTotalClusters()
       });
-      setClusters(clusterer.getClusters().map(cluster => getClusterData(cluster)))
+      setClusters(clusterer.getClusters().map(cluster => getClusterData(clusterer, cluster)))
     };
-  }, [clusterEnd]);
+  }, [clusterer, clusterEnd]);
 
   useEffect(() => {
     if (clusterer) {
@@ -64,7 +71,6 @@ export default function McpMap(props: IMapProps) {
   }, [props.gridSize]);
 
   const handleMcpMapLoaded = (map: google.maps.Map, maps: Maps) => {
-    setMap(map);
     let markers = props.allMarkers.map(pnt => {
       let marker = new google.maps.Marker({
         position: new google.maps.LatLng(pnt.lat, pnt.lng)
@@ -80,14 +86,6 @@ export default function McpMap(props: IMapProps) {
     });
     setClusterer(new MarkerClusterer(map, markers, { imagePath: "/images/m", zoomOnClick: false, gridSize: props.gridSize }));
   }
-
-  const getClusterData = (cluster: Cluster, getBounds: boolean = false, sliceTo: number = -1): ICluster => ({
-    size: cluster.getSize(),
-    center: cluster.getCenter().toJSON(),
-    bounds: getBounds ? clusterer.getExtendedBounds(new google.maps.LatLngBounds(cluster.getCenter(), cluster.getCenter())).toJSON() : null,
-    // TODO: simplify if too slow? all I need is a count?
-    markers: (sliceTo == -1 ? cluster.getMarkers() : cluster.getMarkers().slice(0,sliceTo)).map(m => m.getPosition().toJSON()),
-  });
 
   // TODO ? instead of using GoogleMapReact's 'onChanged', hook into gmaps actual events for faster response
   const handleMcpMapChange = ({ center, zoom, bounds, marginBounds, size }: ChangeEventValue) => {

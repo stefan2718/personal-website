@@ -1,5 +1,5 @@
 import React from "react"
-import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ICombinedResult, ITestControlsStateNumbers, ITestControlsStateBooleans, ILocalResults } from "../../util/interfaces";
+import { ITestControlsState, IMapTestState, ITestControlsProps, IMapState, Direction, ITestResults, IKeyedMapTestState, ITestSummary, ISpiralState, MapType, ITestControlsStateNumbers, ITestControlsStateBooleans, ILocalResults } from "../../util/interfaces";
 import { Subject, defer, concat, Observable, forkJoin, } from "rxjs";
 import { concatMap, map, delay, reduce, tap, first, } from 'rxjs/operators';
 import { INTIAL_MAP_STATE, LOCAL_RESULTS_KEY_MCP, LOCAL_RESULTS_KEY_WASM } from "../../util/constants";
@@ -86,10 +86,10 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
   }
 
   componentDidUpdate(prevProps: ITestControlsProps, prevState: ITestControlsState) {
-    if (this.props.wasmState.clusterEnd != prevProps.wasmState.clusterEnd) {
+    if (this.props.wasmState.clusterEnd !== prevProps.wasmState.clusterEnd) {
       this.wasmState.next(this.props.wasmState);
     }
-    if (this.props.mcpState.clusterEnd != prevProps.mcpState.clusterEnd) {
+    if (this.props.mcpState.clusterEnd !== prevProps.mcpState.clusterEnd) {
       this.mcpState.next(this.props.mcpState);
     }
   }

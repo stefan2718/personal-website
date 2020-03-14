@@ -9,10 +9,6 @@ import LabRoutes from '../components/LabRoutes';
 
 class HomeIndex extends React.Component<IGatsbyProps> {
 
-  constructor(props: IGatsbyProps) {
-    super(props);
-  }
-
   render() {
     const siteDescription = "Stefan - full stack developer, improviser, yogi, cyclist."
     return (

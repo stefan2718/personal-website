@@ -3,7 +3,7 @@ import { ICluster } from "wasm-marker-clusterer";
 
 class WasmMapCluster extends React.Component<ICluster & { lat: number, lng: number, onClick: (cluster: ICluster) => void }> {
 
-  getCluster: () => ICluster = () => {
+  getCluster = (): ICluster => {
     return { 
       size: this.props.size,
       center: this.props.center,

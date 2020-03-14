@@ -8,10 +8,6 @@ import { IGatsbyProps } from '../util/interfaces';
 
 class Blog extends React.Component<IGatsbyProps> {
 
-  constructor(props: IGatsbyProps) {
-    super(props);
-  }
-
   render() {
     const { data } = this.props;
     const siteDescription = "Listing of all the blog posts written by Stefan Battiston"
