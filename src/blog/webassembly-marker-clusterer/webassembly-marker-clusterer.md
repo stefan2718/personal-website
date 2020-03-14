@@ -1,6 +1,7 @@
 ---
 path: "/blog/webassembly-marker-clusterer"
-date: "2019-05-29T00:00:00Z"
+publishedDate: "2019-05-29T00:00:00Z"
+updatedDate: "2019-05-29T00:00:00Z"
 title: "WebAssembly VS JavaScript - A side-by-side comparison at clustering map markers"
 description: "How much faster is WebAssembly? By porting the MarkerClustererPlus JS library to Wasm (compiled from Rust) you get a 5-15 times speedup"
 draft: false

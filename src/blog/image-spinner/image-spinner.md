@@ -1,6 +1,7 @@
 ---
 path: "/blog/image-spinner"
-date: "2019-05-29T00:00:00Z"
+publishedDate: "2019-05-29T00:00:00Z"
+updatedDate: "2019-05-29T00:00:00Z"
 title: "A single file website to spin an image, with hilarious results"
 description: ""
 draft: true

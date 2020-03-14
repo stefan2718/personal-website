@@ -16,7 +16,7 @@ export default function Template({ data }: { data: Query }) {
       <div id="main">
         <div className="inner-main">
           <h1>{frontmatter.title}</h1>
-          <time dateTime={frontmatter.dateISO}>{frontmatter.date}</time>
+          <time dateTime={frontmatter.dateISO}>{frontmatter.publishedDate}</time>
           <article
             className="blog-post-content"
             dangerouslySetInnerHTML={{ __html: html }}
@@ -32,11 +32,13 @@ export const pageQuery = graphql`
     markdownRemark(frontmatter: { path: { eq: $path } }) {
       html
       frontmatter {
-        dateISO: date
-        date(formatString: "MMMM DD, YYYY")
+        dateISO: publishedDate 
+        publishedDate(formatString: "MMMM DD, YYYY")
+        updatedDate(formatString: "MMMM DD, YYYY")
         path
         title
         description
+        draft
       }
     }
   }

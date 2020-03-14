@@ -26,7 +26,7 @@ class Blog extends React.Component<IGatsbyProps> {
                 <BlogSummary 
                   key={edge.node.frontmatter.path}
                   path={edge.node.frontmatter.path}
-                  date={edge.node.frontmatter.date}
+                  date={edge.node.frontmatter.publishedDate}
                   dateISO={edge.node.frontmatter.dateISO}
                   title={edge.node.frontmatter.title}
                   excerpt={edge.node.frontmatter.description}
@@ -43,7 +43,7 @@ class Blog extends React.Component<IGatsbyProps> {
 export const pageQuery = graphql`
 {
   allMarkdownRemark(
-    sort: { order: DESC, fields: [frontmatter___date] }
+    sort: { order: DESC, fields: [frontmatter___publishedDate] }
     filter: { frontmatter: { draft: { eq: false }}}
     limit: 10
   ) {

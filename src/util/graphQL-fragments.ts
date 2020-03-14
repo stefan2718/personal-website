@@ -6,8 +6,8 @@ fragment BlogPostFragment on MarkdownRemarkConnection {
     node {
       excerpt(pruneLength: 240)
       frontmatter {
-        dateISO: date
-        date(formatString: "MMMM DD, YYYY")
+        dateISO: publishedDate
+        publishedDate(formatString: "MMMM DD, YYYY")
         description
         path
         title

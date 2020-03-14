@@ -956,7 +956,8 @@ export type MarkdownRemarkFrontmatter = {
   __typename?: 'MarkdownRemarkFrontmatter',
   title?: Maybe<Scalars['String']>,
   path?: Maybe<Scalars['String']>,
-  date?: Maybe<Scalars['Date']>,
+  publishedDate?: Maybe<Scalars['Date']>,
+  updatedDate?: Maybe<Scalars['Date']>,
   dateISO?: Maybe<Scalars['Date']>,
   description?: Maybe<Scalars['String']>,
   draft?: Maybe<Scalars['Boolean']>,
@@ -1635,7 +1636,6 @@ export enum SitePageFieldsEnum {
   PluginCreatorPackageJsonPeerDependenciesName = 'pluginCreator___packageJson___peerDependencies___name',
   PluginCreatorPackageJsonPeerDependenciesVersion = 'pluginCreator___packageJson___peerDependencies___version',
   PluginCreatorPackageJsonKeywords = 'pluginCreator___packageJson___keywords',
-  PluginCreatorId = 'pluginCreatorId',
   ComponentPath = 'componentPath'
 }
 
