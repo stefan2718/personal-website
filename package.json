@@ -4,6 +4,7 @@
   "version": "1.1.0",
   "author": "Stefan Battiston",
   "dependencies": {
+    "@google/markerclustererplus": "^5.0.1",
     "eslint-config-react-app": "^5.1.0",
     "gatsby": "^2.18.12",
     "gatsby-plugin-canonical-urls": "^2.1.18",

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { IMapProps } from "../../util/interfaces";
-import MarkerClusterer from '../../assets/markerclusterer';
 import MapWrapper from "./MapWrapper";
+import MarkerClusterer from "@google/markerclustererplus"
 import GoogleMapReact, { ChangeEventValue, Maps } from "google-map-react";
 import { ICluster } from "wasm-marker-clusterer";
 import { boundsToIBounds } from "../../util/helpers";
@@ -59,7 +59,7 @@ export default function McpMap(props: IMapProps) {
         markerCount,
         clusterCount: clusterer.getTotalClusters()
       });
-      setClusters(clusterer.getClusters().map(cluster => getClusterData(clusterer, cluster)))
+      setClusters(clusterer.getClusters().map(cluster => getClusterData(clusterer, cluster as any)))
     };
   }, [clusterer, clusterEnd]);
 
