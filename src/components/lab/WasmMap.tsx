@@ -95,7 +95,8 @@ export default function WasmMap(props: IMapProps) {
 
   return (
     <MapWrapper
-      title={"WASM"}
+      title={"Wasm"}
+      link={"https://github.com/stefan2718/wasm-marker-clusterer"}
       clickedCluster={clickedCluster}
       clustererStats={stats}
       mapState={props.mapState}

@@ -98,7 +98,8 @@ export default function McpMap(props: IMapProps) {
 
   return (
     <MapWrapper
-      title={"Javascript (MCP)"}
+      title={"Javascript"}
+      link={"https://github.com/googlemaps/v3-utility-library/tree/%40google/markerclustererplus%405.0.3/packages/markerclustererplus"}
       clickedCluster={clickedCluster}
       mapState={props.mapState}
       renderIndicatorPercent={props.renderIndicatorPercent}

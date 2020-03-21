@@ -8,7 +8,7 @@ import './MapWrapper.scss';
 export default function MapWrapper(props: IMapWrapperProps) {
   return (
     <span className="map-and-stats">
-      <h3>{props.title}</h3>
+      <h3><a href={props.link}>{props.title}</a></h3>
       <ClusteringStats {...props.clustererStats} {...props.mapState} comparisonTime={props.comparisonTime}></ClusteringStats>
       { props.showIndicator && <RenderIndicator leftOffset={props.renderIndicatorPercent}/> }
       <div className="gmap">

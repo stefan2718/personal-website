@@ -134,6 +134,7 @@ export interface ISpiralState {
 
 export interface IMapWrapperProps {
   title: string;
+  link: string;
   children: ReactNode;
   clustererStats: IClustererStats;
   mapState: IMapState;
