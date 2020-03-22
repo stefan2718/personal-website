@@ -139,6 +139,7 @@ export default function Clusterer(props: IGatsbyProps) {
                 setTestIsRunning={setTestIsRunning}
                 setMcpMapState={setMcpMapState}
                 setWasmMapState={setWasmMapState}
+                setShowIndicator={setShowIndicator}
                 bounds={mcpMapState.bounds}
                 wasmState={wasmMapTestState}
                 mcpState={mcpMapTestState}

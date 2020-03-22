@@ -91,6 +91,7 @@ export interface ITestControlsProps {
   setTestIsRunning: (testIsRunning: boolean) => void;
   setWasmMapState: (wasmMapState: IMapState) => void;
   setMcpMapState: (mcpMapState: IMapState) => void;
+  setShowIndicator: (showIndicator: boolean) => void;
   gridSize: number;
   wasmState: IMapTestState;
   mcpState: IMapTestState;

@@ -73,9 +73,9 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     const timestamp = Date.now();
     this.state = {
       minZoom: 7,
-      maxZoom: 14,
-      maxPans: 5,
-      runs: 1,
+      maxZoom: 10,
+      maxPans: 1,
+      runs: 3,
       running: false,
       submitResults: true,
       saveLocally: true,
@@ -117,6 +117,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
     let zoomsPerRun = maxZoom - minZoom + 1;
     this.props.setSyncMap(false);
     this.props.setTestIsRunning(true);
+    this.props.setShowIndicator(false);
     this.setState({ running: true });
 
     let initialMapState = this.props.getMapState("mcp");
@@ -142,6 +143,7 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       () => {
         this.props.setSyncMap(true);
         this.props.setTestIsRunning(false);
+        this.props.setShowIndicator(true);
         this.setState({ running: false });
       }
     );
