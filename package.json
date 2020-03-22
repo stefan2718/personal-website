@@ -4,7 +4,7 @@
   "version": "1.1.0",
   "author": "Stefan Battiston",
   "dependencies": {
-    "@google/markerclustererplus": "^5.0.1",
+    "@google/markerclustererplus": "^5.0.3",
     "eslint-config-react-app": "^5.1.0",
     "gatsby": "^2.18.12",
     "gatsby-plugin-canonical-urls": "^2.1.18",
@@ -13,7 +13,7 @@
     "gatsby-plugin-offline": "^3.0.30",
     "gatsby-plugin-purgecss": "^4.0.1",
     "gatsby-plugin-react-helmet": "^3.1.18",
-    "gatsby-plugin-s3": "^0.3.2",
+    "gatsby-plugin-s3": "^0.3.3",
     "gatsby-plugin-sass": "^2.1.26",
     "gatsby-plugin-sharp": "^2.4.7",
     "gatsby-plugin-typescript": "^2.1.23",
