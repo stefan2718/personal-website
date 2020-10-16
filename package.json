@@ -1,7 +1,7 @@
 {
   "name": "stefans-website",
   "description": "Where I put stuff.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Stefan Battiston",
   "dependencies": {
     "@google/markerclustererplus": "^5.0.3",
