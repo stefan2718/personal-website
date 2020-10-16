@@ -81,9 +81,8 @@ const renderLineOfBestFit = (line: ReturnType<typeof getBestFitLinePoints>) => {
 }
 
 export const Graph: React.FC<IGraphProps> = React.memo((props) => {
-  let [displayLocal, setDisplayLocal] = useState(true);
+  let [displayLocal, setDisplayLocal] = useState(false);
   
-  // TODO: memoize
   let mcpRes  = displayLocal ? mergeResults(props.latestMcpResults, LOCAL_RESULTS_KEY_MCP) : props.latestMcpResults.results;
   let mcpData = divideResultsPerCluster(mcpRes);
   let mcpLine = getBestFitLinePoints(mcpData, 'mcp');
@@ -101,7 +100,7 @@ export const Graph: React.FC<IGraphProps> = React.memo((props) => {
       <div className="graph-options">
         <span title="Display all the results from previous tests you've run on this device.">
           <input id="displayLocal" name="displayLocal" type="checkbox" checked={displayLocal} onChange={e => setDisplayLocal(e.target.checked)}/>
-          <label htmlFor="displayLocal">Display all saved results</label>
+          <label htmlFor="displayLocal">Also display previously saved results</label>
         </span>
       </div>
       <ResponsiveContainer className="graph">

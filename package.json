@@ -31,7 +31,7 @@
     "react-modal": "^3.11.1",
     "recharts": "^1.8.5",
     "rxjs": "^6.5.3",
-    "wasm-marker-clusterer": "^1.0.0"
+    "wasm-marker-clusterer": "1.1.1"
   },
   "keywords": [
     "gatsby"

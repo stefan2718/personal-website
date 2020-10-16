@@ -147,3 +147,35 @@ I had to rewrite a benchmarking library to not rely on System calls for time mea
 While trying to setup Cypress for functional testing of the library I got back into the Webpack setup debacle and ended up tracking down some Github issues regarding my problems bundling dynamically imported bundles. See [issue #7843](https://github.com/webpack/webpack/issues/7843) and [issue 6818](https://github.com/webpack/webpack/issues/6818).
 
 I ended up setting up webpack-dev-server as a test server to serve files for Cypress, but keeping the default build process webpack-less, so it could be webpacked by the app using the library.
+
+## Writing the article
+
+omfg, as I was working on the write up, I noticed that MCP has newer versions and I should probably use them to be fair...
+
+The new MCP version is faster than my Wasm version. It's down to this [one fix](https://github.com/googlemaps/v3-utility-library/commit/6e736768cb7dd2f645cdaa8cb5684967b6bc78f8) that was completed after someone noticed that MCP was [rendering while it was clustering](https://github.com/googlemaps/v3-utility-library/issues/605).
+
+Upgrading rust 1.37 -> 1.42 and the rust dependencies used actually seems to have made things slower, but that could just be bad benchmarking.
+Changing all f64 -> f32 to hopefully optimize for wasm32 sped things up on my MacOS target, but not in wasm32.
+Seems like mostly bad performance with a single cluster of all the markers (i.e. zoom 7), but also not great for zoom 8. Compile optimization improvements won't do much if there's some code-level mistake causing that issue.
+
+## More bugs and realistic performance improvements
+
+It was of course a problem inherent to the code (i.e. algorithmic complexity). After finally figuring out why I couldn't get function names to display in the browser profiler ([a wasm-pack bug](https://github.com/rustwasm/wasm-pack/issues/797)), I could now see that the `add_markers` method was eating up at least 50% of the CPU time. I discovered this was because the method would scan through all the markers in the cluster to see if it was already added. This is an unnecessary step because we're already tracking `is_added` for each marker at a higher level in the call stack. After removing that extra scan, Wasm was again much faster than MCP (~3x in Chrome, 5-10x in Firefox). 
+
+However, now it's become an unfair comparison, as the implementations have become algorithmically different - MCP [still checks all markers](https://github.com/googlemaps/v3-utility-library/blob/%40google/markerclustererplus%405.0.3/packages/markerclustererplus/src/cluster.ts#L127-L132) in a cluster before adding a new marker.
+
+```javascript
+  function addMarker(marker) {
+    if (this.isMarkerAlreadyAdded_(marker)) {
+      return false;
+    }
+    ...
+```
+
+So to make it fair, I removed that check from MCP and reran the comparison tests. Wasm comes out ahead still, but by a more reasonable margin. 1.5x in Chrome and 1.1x in Firefox.
+
+With the O(n^2) algorithm running, Chrome ran MCP consistently much faster than Wasm, and Firefox was more inconsistently slow (and sometimes faster)
+With the O(n) algorithm, Chrome and Firefox ran Wasm faster _on average_ 
+
+What does this even mean? 
+Are the browsers supremely good at optimizing slow Javascript, and could be smarter about memory management? Whereas for Wasm, the browsers have fewer optimizations due to the lower instruction level, and newer memory management models? I have no idea, I could only guess.

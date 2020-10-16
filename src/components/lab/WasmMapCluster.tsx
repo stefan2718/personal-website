@@ -5,7 +5,6 @@ class WasmMapCluster extends React.Component<ICluster & { lat: number, lng: numb
 
   getCluster = (): ICluster => {
     return { 
-      size: this.props.size,
       center: this.props.center,
       bounds: this.props.bounds,
       uuid: this.props.uuid,
@@ -14,11 +13,11 @@ class WasmMapCluster extends React.Component<ICluster & { lat: number, lng: numb
   }
 
   render() {
-    return this.props.size !== 1 ? (
+    return this.props.markers.length !== 1 ? (
       <div className="wasm-cluster" >
-        <img src={'/images/m' + String(this.props.size).length + '.png'} alt=''  
+        <img src={'/images/m' + String(this.props.markers.length).length + '.png'} alt=''  
           onClick={this.props.onClick.bind(this, this.getCluster())}/>
-        <span onClick={this.props.onClick.bind(this, this.getCluster())}>{this.props.size}</span>
+        <span onClick={this.props.onClick.bind(this, this.getCluster())}>{this.props.markers.length}</span>
       </div>
     ) : (
       <img className="wasm-marker" src='/images/marker.png' alt='' onClick={this.props.onClick.bind(this, this.getCluster())}/>

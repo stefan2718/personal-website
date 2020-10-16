@@ -12,6 +12,11 @@ export default function Template({ data }: { data: Query }) {
       <Helmet>
         <title>{frontmatter.title}</title>
         <meta name="description" content={frontmatter.description} />
+        { frontmatter.draft && <meta name="robots" content="noindex, nofollow" />}
+        {/* <meta property="og:title" content={frontmatter.title}/>
+        <meta property="og:description" content={frontmatter.description}/> */}
+        {/* <meta property="og:image" content=""/> */}
+        {/* <meta property="og:url" content=""/> */}
       </Helmet>
       <div id="main">
         <div className="inner-main">

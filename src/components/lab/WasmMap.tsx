@@ -18,7 +18,7 @@ export default function WasmMap(props: IMapProps) {
   useEffect(() => {
     let clusterer = new WasmMarkerClusterer();
     clusterer.configure({
-        logTime: false,
+        logTime: true,
         onlyReturnModifiedClusters: true,
         gridSize: props.gridSize,
       })

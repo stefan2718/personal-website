@@ -143,7 +143,6 @@ class TestControls extends React.Component<ITestControlsProps, ITestControlsStat
       () => {
         this.props.setSyncMap(true);
         this.props.setTestIsRunning(false);
-        this.props.setShowIndicator(true);
         this.setState({ running: false });
       }
     );

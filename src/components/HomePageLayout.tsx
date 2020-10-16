@@ -1,5 +1,4 @@
 import React from 'react'
-import Helmet from 'react-helmet'
 import '../assets/scss/main.scss'
 import './HomePageLayout.scss';
 
@@ -16,9 +15,6 @@ class HomePageLayout extends React.Component<IGatsbyProps> {
 
     return (
       <div className={this.getClassNames(location.pathname)}>
-        <Helmet>
-          <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
         <Header />
         {children}
       </div>

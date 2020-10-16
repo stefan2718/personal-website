@@ -77,7 +77,7 @@ export default function Clusterer(props: IGatsbyProps) {
   let [mcpMapState, setMcpMapState] = useState<IMapState>(INTIAL_MAP_STATE);
   let [renderIndicatorPercent, setRenderIndicatorPercent] = useState(0);
   let [renderIndicatorMovesRight, setRenderIndicatorMovesRight] = useState(true);
-  let [showIndicator, setShowIndicator] = useState(true);
+  let [showIndicator, setShowIndicator] = useState(false);
 
   useEffect(() => {
     if (showIndicator) {
